@@ -1,0 +1,50 @@
+<div id="items">
+  <form hx-post="/items?url={{.URL | urlquery}}">
+  {{range $idx, $item := .Items}}
+    {{if $item.IsUnread}}
+    <input type="hidden" name="read" value="{{$item.Link}}">
+    {{end}}
+  {{end}}
+    <button
+      type="submit"
+      hx-target="#items"
+      hx-swap="outerHTML"
+      class="btn btn-primary p-1"><small>
+        <i class="bi-check2-square"></i>
+        Mark All As Read</small></button>
+  </form>
+  <div class="accordion accordion-flush border" id="itemsAccordion">
+  {{range $idx, $item := .Items}}
+    <div class="accordion-item">
+      <h2 class="accordion-header">
+        <div class="p-2 accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{$idx}}" aria-expanded="true" aria-controls="collapse{{$idx}}">
+          <div class="w-100">
+          {{if $item.IsUnread}}<strong>{{end}}
+            {{if $item.Title}}
+              {{$item.Title}}&nbsp;<i><small class="text-body-secondary">{{$item.Summary}}</small></i>
+            {{else}}
+              {{$item.Summary}}
+            {{end}}
+          {{if $item.IsUnread}}</strong>{{end}}
+          </div>
+        </div>
+      </h2>
+
+      <div id="collapse{{$idx}}" class="accordion-collapse collapse" data-bs-parent="#itemsAccordion">
+        <div class="accordion-body m-0 p-2">
+          <div hx-get="/item?id={{$item.Link | urlquery}}&url={{$.URL | urlquery}}"
+               hx-swap="outerHTML"
+               hx-trigger="intersect once"
+               class="summary">
+
+            <div class="spinner-border" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  {{end}}
+  </div>
+</div>

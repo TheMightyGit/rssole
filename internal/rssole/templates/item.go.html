@@ -1,0 +1,11 @@
+<div>
+  <div class="w-100">
+    <a href="{{.Link}}" target="_new">link</a>
+    <small>{{.PublishedParsed}}</small>
+  </div>
+  <hr class="w-100" />
+  {{if .Image}}
+    <img src="{{.Image.URL}}" />
+  {{end}}
+  <div>{{.Description}}</div>
+</div>

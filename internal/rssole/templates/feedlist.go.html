@@ -1,0 +1,35 @@
+<div id="feeds" {{if .Selected}}hx-swap-oob="true"{{end}}>
+  <div class="list-group">
+  {{range $category, $feeds := .FeedTree}}
+    <span class="list-group-item-light m-0 p-0 d-inline-block text-truncate"
+          xxx-data-bs-toggle="collapse" xxx-data-bs-target="#{{$category}}">
+      <small><small>{{$category}}</small></small>
+    </span>
+    {{range $feeds}}
+    <!-- span id="{{$category}}" class="collapse m-0 p-0" -->
+      <a class="p-1 {{if eq $.Selected .Title}}active{{end}} list-group-item list-group-item-action d-flex flex-row"
+        hx-get="/items?url={{.URL | urlquery}}"
+        hx-target="#items"
+        hx-swap="outerHTML">
+        <span class="w-25 badge {{if gt .UnreadItemCount 0}}bg-danger{{else}}bg-secondary{{end}} rounded-pill">{{.UnreadItemCount}}</span>
+        &nbsp;
+        <span class="text-truncate w-100">{{.Title}}</span>
+        &nbsp;
+        <span class="text-secondary">{{if .Scrape}}<i class="bi-browser-chrome"></i>{{else}}<i class="bi-rss-fill"></i>{{end}}</span>
+        <span class="text-secondary"><i class="bi-pencil-square"></i></span>
+      </a>
+    <!-- /span -->
+    {{end}}
+  {{end}}
+  </div>
+  <button
+    hx-get="/addfeed"
+    hx-target="#items"
+    hx-swap="outerHTML"
+    class="btn btn-primary p-1">
+    <small>
+        <i class="bi-plus-square-dotted"></i>
+        Add Feed
+    </small>
+  </button>
+</div>

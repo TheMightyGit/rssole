@@ -1,0 +1,45 @@
+{
+  "feeds": [
+    {"url":"https://news.ycombinator.com/rss", "category":"Nerd"},
+    {"url":"http://feeds.bbci.co.uk/news/rss.xml", "category":"General News"},
+    {"url":"https://www.rockpapershotgun.com/feed", "category":"Games"},
+    {"url":"https://gamedev.stackexchange.com/feeds", "category":"GameDev"},
+    {"url":"https://gamedev.net/articles/feed", "category":"GameDev"},
+    {"url":"https://www.phoronix.com/rss.php", "category":"Nerd"},
+    {"url":"https://mas.to/@curiousordinary.rss", "category":"Nerd"},
+    {"url":"https://rss.slashdot.org/Slashdot/slashdotMain", "category":"Nerd"},
+    {"url":"https://www.theregister.com/headlines.atom", "category":"Nerd"},
+    {"url":"https://go.dev/blog/feed.atom?format=xml", "category":"Golang"},
+    {"url":"https://godotengine.org/rss.xml", "category":"GameDev"},
+    {"url":"https://feeds.feedburner.com/TheDailyWtf", "category":"Funny"},
+    {"url":"https://store.steampowered.com/feeds/news/app/1675200/", "name":"Steam Deck News Hub", "category":"Games"},
+    {
+      "url":"https://www.pcgamer.com/uk/news/", "category":"Games",
+      "name":"PCGamer News",
+      "scrape": {
+        "urls": [
+          "https://www.pcgamer.com/uk/news/",
+          "https://www.pcgamer.com/uk/news/page/2/",
+          "https://www.pcgamer.com/uk/news/page/3/"
+        ],
+        "item": ".listingResult",
+        "title": ".article-name",
+        "link": ".article-link"
+      }
+    },
+    {
+      "url":"https://www.pcgamer.com/uk/reviews/", "category":"Games",
+      "name":"PCGamer Reviews",
+      "scrape": {
+        "urls": [
+          "https://www.pcgamer.com/uk/reviews/",
+          "https://www.pcgamer.com/uk/reviews/page/2/",
+          "https://www.pcgamer.com/uk/reviews/page/3/"
+        ],
+        "item": ".listingResult",
+        "title": ".article-name",
+        "link": ".article-link"
+      }
+    }
+  ]
+}
