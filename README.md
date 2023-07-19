@@ -2,7 +2,7 @@
 
 A simple RSS Reader inspired by Google Reader.
 
-![Screenshot 2023-07-19 at 10 58 50](https://github.com/TheMightyGit/rssole/assets/888751/d243c6f6-99ea-41ee-819b-f3d3456f69d2)
+![Screenshot 2023-07-19 at 10 58 50](https://github.com/TheMightyGit/rssole/assets/888751/73fbbc46-dccb-4550-a048-a09ab0f35757)
 
 It's just a single binary with a single config file, feeds are viewed via your web browser. No apps, no web servers, no signing in, nothing special at all.
 
