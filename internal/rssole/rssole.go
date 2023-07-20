@@ -68,7 +68,7 @@ func loadTemplates() error {
 	return nil
 }
 
-func Start() {
+func Start(listenAddress string) {
 	loadTemplates()
 	loadReadLut()
 	readFeedsFile()
@@ -81,7 +81,6 @@ func Start() {
 	http.HandleFunc("/item", item)
 	http.HandleFunc("/addfeed", addfeed)
 
-	hostAndPort := "0.0.0.0:8090"
-	fmt.Printf("Listening on %s\n", hostAndPort)
-	http.ListenAndServe(hostAndPort, nil)
+	fmt.Printf("Listening on %s\n", listenAddress)
+	http.ListenAndServe(listenAddress, nil)
 }

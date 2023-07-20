@@ -1,7 +1,19 @@
 package main
 
-import "github.com/TheMightyGit/rssole/internal/rssole"
+import (
+	"os"
+
+	"github.com/TheMightyGit/rssole/internal/rssole"
+)
+
+const (
+	defaultListenAddress = "0.0.0.0:8090"
+)
 
 func main() {
-	rssole.Start()
+	listenAddress := os.Getenv("RSSOLE_ADDRESS")
+	if listenAddress == "" {
+		listenAddress = defaultListenAddress
+	}
+	rssole.Start(listenAddress)
 }
