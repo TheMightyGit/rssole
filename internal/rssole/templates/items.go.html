@@ -1,5 +1,5 @@
 <div id="items">
-  <form hx-post="/items?url={{.URL | urlquery}}">
+  <form hx-post="/items?url={{.URL | urlquery}}" hx-target="#items">
   {{range $idx, $item := .Items}}
     {{if $item.IsUnread}}
     <input type="hidden" name="read" value="{{$item.Link}}">
