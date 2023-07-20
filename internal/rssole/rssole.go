@@ -5,11 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/fs"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"text/template"
+	"time"
 )
 
 const (
@@ -33,12 +33,8 @@ func readFeedsFile() {
 	}
 	defer jsonFile.Close()
 
-	content, err := ioutil.ReadAll(jsonFile)
-	if err != nil {
-		log.Fatalf("Error reading file: %v", err)
-	}
-
-	err = json.Unmarshal(content, allFeeds)
+	d := json.NewDecoder(jsonFile)
+	err = d.Decode(allFeeds)
 	if err != nil {
 		log.Fatalf("Error unmarshalling JSON: %v", err)
 	}
@@ -68,12 +64,12 @@ func loadTemplates() error {
 	return nil
 }
 
-func Start(listenAddress string) {
+func Start(listenAddress string, updateTimeSeconds time.Duration) {
 	loadTemplates()
 	loadReadLut()
 	readFeedsFile()
 
-	allFeeds.BeginFeedUpdates()
+	allFeeds.BeginFeedUpdates(updateTimeSeconds)
 
 	http.HandleFunc("/", index)
 	http.HandleFunc("/feeds", feedlist)

@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"net/http"
 	"sync"
+	"time"
 )
 
 type feeds struct {
@@ -24,7 +25,7 @@ func (f *feeds) FeedTree() map[string][]*feed {
 	return cats
 }
 
-func (f *feeds) BeginFeedUpdates() {
+func (f *feeds) BeginFeedUpdates(updateTime time.Duration) {
 	// ignore cert errors
 	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 
@@ -32,6 +33,7 @@ func (f *feeds) BeginFeedUpdates() {
 	defer f.mu.Unlock()
 
 	for _, feed := range f.Feeds {
+		feed.updateTime = updateTime
 		feed.StartTickedUpdate()
 	}
 }

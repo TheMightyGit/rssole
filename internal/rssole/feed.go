@@ -20,6 +20,7 @@ type feed struct {
 	mu           sync.RWMutex
 	id           string
 	wrappedItems []*wrappedItem
+	updateTime   time.Duration
 }
 
 func (f *feed) Title() string {
@@ -112,8 +113,8 @@ func (f *feed) Update() {
 func (f *feed) StartTickedUpdate() {
 	go func() {
 		f.Update()
-		ticker := time.NewTicker(300 * time.Second)
-		log.Println("Started update ticker for", f.URL)
+		ticker := time.NewTicker(f.updateTime)
+		log.Println("Started update ticker of", f.updateTime, "for", f.URL)
 		for range ticker.C {
 			f.Update()
 		}

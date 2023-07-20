@@ -1,4 +1,8 @@
 {
+  "config": {
+    "listen": "0.0.0.0:8090",
+    "update_seconds": 300
+  },
   "feeds": [
     {"url":"https://github.com/TheMightyGit/rssole/releases.atom", "category":"Github Releases"},
     {"url":"https://github.com/hajimehoshi/ebiten/releases.atom", "category":"Github Releases"},
