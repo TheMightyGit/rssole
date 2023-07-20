@@ -79,6 +79,7 @@ Use `category` to group similar feeds together.
 ```json
 {
   "feeds": [
+    {"url":"https://github.com/TheMightyGit/rssole/releases.atom", "category":"Github Releases"},
     {"url":"https://news.ycombinator.com/rss", "category":"Nerd"},
     {"url":"http://feeds.bbci.co.uk/news/rss.xml", "category":"News"},
     {
@@ -104,7 +105,7 @@ Use `category` to group similar feeds together.
 - Feeds are updated every 300 seconds. Currently not configurable.
 - `readcache.json` (which notes which URLs you've marked as read) grows unbounded at the moment.
 - 'Add Feed' in the UI doesn't work (yet). Well, it does, but it doesn't persist it so it'll vanish on next restart.
-- No tests and some poor error handling in places.
+- No tests and some poor error handling in places. It's very much prototype code right now.
 
 ## Key Dependencies
 
