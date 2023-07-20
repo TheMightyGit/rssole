@@ -53,12 +53,12 @@ Now open your browser on `<hostname/ip>:8090` e.g. http://localhost:8090
 ## Network
 
 By default it binds to `0.0.0.0:8090`, so it will be available on all network adaptors
-on your host.
+on your host. You can change this in the `feeds.json` config file.
 
 I run rssole within a private network so this is good enough for me so that I can run it once but
 access it from all my devices. If you run this on an alien network then someone else can mess with
-the UI (there's no protection at all on it) - change the code to `127.0.0.1:8090` if you only want
-it to serve locally.
+the UI (there's no protection at all on it) - change the `listen` value in `feeds.json` to
+`127.0.0.1:8090` if you only want it to serve locally.
 
 If you want to protect rssole behind a username and password or encryption (because you want rssole wide
 open on the net so you can use it from anywhere) then you'll need a web proxy that can be configured
