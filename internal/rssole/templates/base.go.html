@@ -21,11 +21,7 @@
   <div class="row align-items-start">
     <div class="col col-sm-3 m-0 p-1">
       <div hx-get="/feeds" hx-trigger="load" hx-swap="outerHTML" id="feeds">
-
-            <div class="spinner-border" role="status">
-              <span class="visually-hidden">Loading...</span>
-            </div>
-
+        {{template "components/spinner" .}}
       </div>
     </div>
     <div class="col col-sm-9 m-0 p-1">

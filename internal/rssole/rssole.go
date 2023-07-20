@@ -58,7 +58,7 @@ func loadTemplates() error {
 			continue
 		}
 
-		pt, err := template.ParseFS(files, templatesDir+"/"+tmpl.Name())
+		pt, err := template.ParseFS(files, templatesDir+"/"+tmpl.Name(), templatesDir+"/components/*.go.html")
 		if err != nil {
 			return err
 		}

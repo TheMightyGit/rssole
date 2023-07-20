@@ -18,15 +18,7 @@
     <div class="accordion-item">
       <h2 class="accordion-header">
         <div class="p-2 accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{$idx}}" aria-expanded="true" aria-controls="collapse{{$idx}}">
-          <div class="w-100">
-          {{if $item.IsUnread}}<strong>{{end}}
-            {{if $item.Title}}
-              {{$item.Title}}&nbsp;<i><small class="text-body-secondary">{{$item.Summary}}</small></i>
-            {{else}}
-              {{$item.Summary}}
-            {{end}}
-          {{if $item.IsUnread}}</strong>{{end}}
-          </div>
+          {{template "components/itemline" $item}}
         </div>
       </h2>
 
@@ -36,11 +28,7 @@
                hx-swap="outerHTML"
                hx-trigger="intersect once"
                class="summary">
-
-            <div class="spinner-border" role="status">
-              <span class="visually-hidden">Loading...</span>
-            </div>
-
+            {{template "components/spinner" .}}
           </div>
         </div>
       </div>
