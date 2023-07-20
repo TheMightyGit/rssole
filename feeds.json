@@ -1,6 +1,7 @@
 {
   "feeds": [
     {"url":"https://github.com/TheMightyGit/rssole/releases.atom", "category":"Github Releases"},
+    {"url":"https://github.com/hajimehoshi/ebiten/releases.atom", "category":"Github Releases"},
     {"url":"https://news.ycombinator.com/rss", "category":"Nerd"},
     {"url":"http://feeds.bbci.co.uk/news/rss.xml", "category":"General News"},
     {"url":"https://www.rockpapershotgun.com/feed", "category":"Games"},
