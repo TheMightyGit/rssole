@@ -1,5 +1,4 @@
 {{define "components/itemline"}}
-  <div class="w-100">
   {{if .IsUnread}}<strong>{{end}}
     {{if .Title}}
       {{.Title}}&nbsp;<i><small class="text-body-secondary">{{.Summary}}</small></i>
@@ -7,5 +6,4 @@
       {{.Summary}}
     {{end}}
   {{if .IsUnread}}</strong>{{end}}
-  </div>
 {{end}}

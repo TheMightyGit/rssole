@@ -9,3 +9,9 @@
   {{end}}
   <div>{{.Description}}</div>
 </div>
+<div id="content{{.ID}}" hx-swap-oob="innerHTML">
+  {{template "components/itemline" .}}
+</div>
+<div id="feed{{.Feed.ID}}" hx-swap-oob="innerHTML">
+  {{template "components/feedline" .Feed}}
+</div>

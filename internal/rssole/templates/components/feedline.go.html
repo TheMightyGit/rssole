@@ -1,0 +1,8 @@
+{{define "components/feedline"}}
+  <span class="w-25 badge {{if gt .UnreadItemCount 0}}bg-danger{{else}}bg-secondary{{end}} rounded-pill">{{.UnreadItemCount}}</span>
+  &nbsp;
+  <span class="text-truncate w-100">{{.Title}}</span>
+  &nbsp;
+  <span class="text-secondary">{{if .Scrape}}<i class="bi-browser-chrome"></i>{{else}}<i class="bi-rss-fill"></i>{{end}}</span>
+  <!-- span class="text-secondary"><i class="bi-pencil-square"></i></span -->
+{{end}}

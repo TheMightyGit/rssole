@@ -94,12 +94,13 @@ func item(w http.ResponseWriter, req *http.Request) {
 		if f.feed != nil && f.URL == feedURL {
 			for _, item := range f.Items() {
 				if item.Link == id {
+					item.IsUnread = false
 					if err := templates["item.go.html"].Execute(w, item); err != nil {
 						log.Println(err)
 					}
 					readLut[item.Link] = time.Now()
 					persistReadLut()
-					item.IsUnread = false
+					break
 				}
 			}
 		}

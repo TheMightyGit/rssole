@@ -1,6 +1,8 @@
 package rssole
 
 import (
+	"crypto/md5"
+	"encoding/hex"
 	"log"
 	"sort"
 	"sync"
@@ -76,6 +78,7 @@ func (f *feed) Update() {
 	for idx, item := range f.feed.Items {
 		f.wrappedItems[idx] = &wrappedItem{
 			IsUnread: isUnread(item.Link),
+			Feed:     f,
 			Item:     item,
 		}
 	}
@@ -123,6 +126,7 @@ func (f *feed) StartTickedUpdate() {
 
 type wrappedItem struct {
 	IsUnread bool
+	Feed     *feed
 	*gofeed.Item
 }
 
@@ -133,4 +137,14 @@ func (w *wrappedItem) Summary() string {
 		plainDesc = plainDesc[:200]
 	}
 	return plainDesc
+}
+
+func (w *wrappedItem) ID() string {
+	hash := md5.Sum([]byte(w.Link))
+	return hex.EncodeToString(hash[:])
+}
+
+func (f *feed) ID() string {
+	hash := md5.Sum([]byte(f.URL))
+	return hex.EncodeToString(hash[:])
 }
