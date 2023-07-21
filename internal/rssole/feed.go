@@ -1,15 +1,19 @@
 package rssole
 
 import (
+	"bytes"
 	"crypto/md5"
 	"encoding/hex"
+	"fmt"
 	"log"
 	"sort"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/k3a/html2text"
 	"github.com/mmcdole/gofeed"
+	"golang.org/x/net/html"
 )
 
 type feed struct {
@@ -130,9 +134,47 @@ type wrappedItem struct {
 	*gofeed.Item
 }
 
+func (w *wrappedItem) Description() string {
+	// try and sanitise any html
+	doc, err := html.Parse(strings.NewReader(w.Item.Description))
+	if err != nil {
+		// ...
+		log.Println(err)
+		return w.Item.Description
+	}
+
+	toDelete := []*html.Node{}
+
+	var f func(*html.Node)
+	f = func(n *html.Node) {
+		//fmt.Println(n)
+		if n.Type == html.ElementNode {
+			//fmt.Println(n.Data)
+			if n.Data == "script" || n.Data == "style" || n.Data == "link" || n.Data == "meta" || n.Data == "iframe" {
+				fmt.Println("removing", n.Data, "tag")
+				toDelete = append(toDelete, n)
+				return
+			}
+		}
+		for c := n.FirstChild; c != nil; c = c.NextSibling {
+			f(c)
+		}
+	}
+	f(doc)
+
+	for _, n := range toDelete {
+		n.Parent.RemoveChild(n)
+	}
+
+	renderBuf := bytes.NewBufferString("")
+	html.Render(renderBuf, doc)
+
+	return renderBuf.String()
+}
+
 func (w *wrappedItem) Summary() string {
 	// TODO: lru cache to prevent overwork
-	plainDesc := html2text.HTML2Text(w.Description)
+	plainDesc := html2text.HTML2Text(w.Item.Description)
 	if len(plainDesc) > 200 {
 		plainDesc = plainDesc[:200]
 	}
