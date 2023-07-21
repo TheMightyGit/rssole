@@ -3,7 +3,6 @@ package rssole
 import (
 	"crypto/md5"
 	"encoding/hex"
-	"html"
 	"log"
 	"sort"
 	"sync"
@@ -129,10 +128,6 @@ type wrappedItem struct {
 	IsUnread bool
 	Feed     *feed
 	*gofeed.Item
-}
-
-func (w *wrappedItem) DescriptionAsAttr() string {
-	return html.EscapeString(w.Description)
 }
 
 func (w *wrappedItem) Summary() string {

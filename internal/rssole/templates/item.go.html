@@ -7,7 +7,7 @@
   {{if .Image}}
     <img src="{{.Image.URL}}" />
   {{end}}
-  <iframe onload="resizeIframe(this);" scrolling="auto" style="height: 10px;" class="w-100" sandbox="allow-same-origin" srcdoc="{{.DescriptionAsAttr}}"></iframe>
+  <div>{{.Description}}</div>
 </div>
 <div id="content{{.ID}}" hx-swap-oob="innerHTML">
   {{template "components/itemline" .}}
