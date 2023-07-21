@@ -135,6 +135,7 @@ type wrappedItem struct {
 }
 
 func (w *wrappedItem) Description() string {
+	// TODO: cache to prevent overwork
 	// try and sanitise any html
 	doc, err := html.Parse(strings.NewReader(w.Item.Description))
 	if err != nil {
@@ -155,6 +156,14 @@ func (w *wrappedItem) Description() string {
 				toDelete = append(toDelete, n)
 				return
 			}
+			if n.Data == "a" {
+				fmt.Println("making", n.Data, "tag target new tab")
+				n.Attr = append(n.Attr, html.Attribute{
+					Namespace: "",
+					Key:       "target",
+					Val:       "_new",
+				})
+			}
 		}
 		for c := n.FirstChild; c != nil; c = c.NextSibling {
 			f(c)
@@ -173,7 +182,7 @@ func (w *wrappedItem) Description() string {
 }
 
 func (w *wrappedItem) Summary() string {
-	// TODO: lru cache to prevent overwork
+	// TODO: cache to prevent overwork
 	plainDesc := html2text.HTML2Text(w.Item.Description)
 	if len(plainDesc) > 200 {
 		plainDesc = plainDesc[:200]
