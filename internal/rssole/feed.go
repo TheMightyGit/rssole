@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"log"
+	"net/url"
 	"sort"
 	"strings"
 	"sync"
@@ -132,6 +133,8 @@ type wrappedItem struct {
 	IsUnread bool
 	Feed     *feed
 	*gofeed.Item
+
+	summary *string
 }
 
 func (w *wrappedItem) Description() string {
@@ -182,12 +185,30 @@ func (w *wrappedItem) Description() string {
 }
 
 func (w *wrappedItem) Summary() string {
-	// TODO: cache to prevent overwork
+	if w.summary != nil {
+		return *w.summary
+	}
+
 	plainDesc := html2text.HTML2Text(w.Item.Description)
 	if len(plainDesc) > 200 {
 		plainDesc = plainDesc[:200]
 	}
-	return plainDesc
+
+	// if summary is identical to title return nothing
+	if plainDesc == w.Title {
+		plainDesc = ""
+	}
+
+	// if summary is just a url then return nothing (hacker news does this)
+	if _, err := url.ParseRequestURI(plainDesc); err == nil {
+		plainDesc = ""
+	} else {
+		fmt.Println(err)
+	}
+
+	w.summary = &plainDesc
+
+	return *w.summary
 }
 
 func (w *wrappedItem) ID() string {
