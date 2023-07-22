@@ -1,18 +1,28 @@
 <div id="items">
-  <form hx-post="/items?url={{.URL | urlquery}}" hx-target="#items">
-  {{range $idx, $item := .Items}}
-    {{if $item.IsUnread}}
-    <input type="hidden" name="read" value="{{$item.Link}}">
-    {{end}}
-  {{end}}
-    <button
-      type="submit"
-      hx-target="#items"
-      hx-swap="outerHTML"
-      class="btn btn-primary p-1"><small>
-        <i class="bi-check2-square"></i>
-        Mark All As Read</small></button>
-  </form>
+  <div class="container m-0 p-0">
+    <div class="row">
+      <div class="col">
+        <form hx-post="/items?url={{.URL | urlquery}}" hx-target="#items">
+        {{range $idx, $item := .Items}}
+          {{if $item.IsUnread}}
+          <input type="hidden" name="read" value="{{$item.Link}}">
+          {{end}}
+        {{end}}
+          <button
+            type="submit"
+            hx-target="#items"
+            hx-swap="outerHTML"
+            class="btn btn-primary p-1"><small>
+              <i class="bi-check2-square"></i>
+              Mark All As Read</small></button>
+        </form>
+      </div>
+      <div class="col text-end">
+        <a class="link" href="{{.Link}}">{{.Title}}</a>
+      </div>
+    </div>
+  </div>
+
   <div class="accordion accordion-flush border" id="itemsAccordion">
   {{range $idx, $item := .Items}}
     <div class="accordion-item">

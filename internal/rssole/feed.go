@@ -30,6 +30,10 @@ type feed struct {
 	updateTime   time.Duration
 }
 
+func (f *feed) Link() string {
+	return f.feed.Link
+}
+
 func (f *feed) Title() string {
 	if f.Name != "" {
 		return f.Name

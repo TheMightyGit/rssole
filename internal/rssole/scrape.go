@@ -20,9 +20,9 @@ func (conf *scrape) GeneratePseudoRssFeed() string {
 <rss version="2.0">
 
 <channel>
-  <title>Apple RSS feed</title>
-  <link>https://www.example.com/apple.xml</link>
-  <description>This RSS feed is about Apple products</description>
+  <title>Scraped Feed</title>
+  <link>` + conf.URLs[0] + `</link>
+  <description>This RSS was scraped</description>
 `
 
 	for _, url := range conf.URLs {
