@@ -25,7 +25,6 @@ type feed struct {
 
 	feed         *gofeed.Feed
 	mu           sync.RWMutex
-	id           string
 	wrappedItems []*wrappedItem
 	updateTime   time.Duration
 }
@@ -186,7 +185,7 @@ func (w *wrappedItem) Description() string {
 	}
 
 	renderBuf := bytes.NewBufferString("")
-	html.Render(renderBuf, doc)
+	_ = html.Render(renderBuf, doc)
 
 	return renderBuf.String()
 }

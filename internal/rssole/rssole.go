@@ -40,13 +40,13 @@ func readFeedsFile() {
 	}
 }
 
-func loadTemplates() error {
+func loadTemplates() {
 	if templates == nil {
 		templates = make(map[string]*template.Template)
 	}
 	tmplFiles, err := fs.ReadDir(files, templatesDir)
 	if err != nil {
-		return err
+		log.Fatalln(err)
 	}
 
 	for _, tmpl := range tmplFiles {
@@ -56,12 +56,11 @@ func loadTemplates() error {
 
 		pt, err := template.ParseFS(files, templatesDir+"/"+tmpl.Name(), templatesDir+"/components/*.go.html")
 		if err != nil {
-			return err
+			log.Fatalln(err)
 		}
 
 		templates[tmpl.Name()] = pt
 	}
-	return nil
 }
 
 func Start(listenAddress string, updateTimeSeconds time.Duration) {
@@ -78,5 +77,7 @@ func Start(listenAddress string, updateTimeSeconds time.Duration) {
 	http.HandleFunc("/addfeed", addfeed)
 
 	fmt.Printf("Listening on %s\n", listenAddress)
-	http.ListenAndServe(listenAddress, nil)
+	if err := http.ListenAndServe(listenAddress, nil); err != nil {
+		log.Fatalln(err)
+	}
 }

@@ -43,7 +43,7 @@ func items(w http.ResponseWriter, req *http.Request) {
 	defer allFeeds.mu.RUnlock()
 
 	if req.Method == "POST" {
-		req.ParseForm()
+		_ = req.ParseForm()
 		markRead := map[string]bool{}
 		for k, v := range req.Form {
 			if k == "read" {
