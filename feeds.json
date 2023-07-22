@@ -13,6 +13,7 @@
     {"url":"https://gamedev.net/articles/feed", "category":"GameDev"},
     {"url":"https://www.phoronix.com/rss.php", "category":"Nerd"},
     {"url":"https://mas.to/@curiousordinary.rss", "category":"Mastodon"},
+    {"url":"https://mstdn.social/@TheMightyGit.rss", "category":"Mastodon"},
     {"url":"https://rss.slashdot.org/Slashdot/slashdotMain", "category":"Nerd"},
     {"url":"https://www.theregister.com/headlines.atom", "category":"Nerd"},
     {"url":"https://go.dev/blog/feed.atom?format=xml", "category":"Golang"},
