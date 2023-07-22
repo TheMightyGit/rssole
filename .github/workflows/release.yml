@@ -22,6 +22,16 @@ jobs:
       - uses: actions/setup-go@v4
         with:
           go-version: stable
+
+      - name: Lint
+        uses: golangci/golangci-lint-action@v3
+
+      - name: Build
+        run: go build -v ./...
+
+      - name: Test
+        run: go test -v ./...
+
       # More assembly might be required: Docker logins, GPG, etc. It all depends
       # on your needs.
       - uses: goreleaser/goreleaser-action@v4

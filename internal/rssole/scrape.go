@@ -18,7 +18,6 @@ type scrape struct {
 func (conf *scrape) GeneratePseudoRssFeed() string {
 	rss := `<?xml version="1.0" encoding="UTF-8" ?>
 <rss version="2.0">
-
 <channel>
   <title>Scraped Feed</title>
   <link>` + conf.URLs[0] + `</link>
@@ -42,21 +41,18 @@ func (conf *scrape) GeneratePseudoRssFeed() string {
 				title := titleChild.Data
 				//title := Query(p, f.Scrape.Title).FirstChild.Data
 				link := attrOr(query(p, conf.Link), "href", "(No link available)")
-				itemRss := `
-  <item>
+				itemRss := `  <item>
     <title>` + title + `</title>
     <link>` + link + `</link>
     <description>` + title + `</description>
   </item>
-	`
+`
 				rss += itemRss
 			}
 		}
 	}
 
-	rss += `
-</channel>
-
+	rss += `</channel>
 </rss>`
 
 	return rss
