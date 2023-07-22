@@ -206,8 +206,6 @@ func (w *wrappedItem) Summary() string {
 	// if summary is just a url then return nothing (hacker news does this)
 	if _, err := url.ParseRequestURI(plainDesc); err == nil {
 		plainDesc = ""
-	} else {
-		fmt.Println(err)
 	}
 
 	w.summary = &plainDesc
