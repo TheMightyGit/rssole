@@ -19,7 +19,7 @@ func (conf *scrape) GeneratePseudoRssFeed() string {
 	rss := `<?xml version="1.0" encoding="UTF-8" ?>
 <rss version="2.0">
 <channel>
-  <title>Scraped Feed</title>
+  <title>` + conf.URLs[0] + `</title>
   <link>` + conf.URLs[0] + `</link>
   <description>This RSS was scraped</description>
 `

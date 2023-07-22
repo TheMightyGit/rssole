@@ -27,7 +27,7 @@ func TestScrape(t *testing.T) {
 	expectedFeedStr := `<?xml version="1.0" encoding="UTF-8" ?>
 <rss version="2.0">
 <channel>
-  <title>Scraped Feed</title>
+  <title>` + ts.URL + `</title>
   <link>` + ts.URL + `</link>
   <description>This RSS was scraped</description>
   <item>
