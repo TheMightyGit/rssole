@@ -8,7 +8,7 @@ import (
 )
 
 func TestScrape(t *testing.T) {
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	ts1 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintln(w, `<html>
 <body>
 	<div class="item">
@@ -17,18 +17,29 @@ func TestScrape(t *testing.T) {
 	</div>
 	<div class="item">
 		<p class="title">Title 2</p>
-		<a class="link" href="http://title2.com/">Title 1</a>
+		<a class="link" href="http://title2.com/">Title 2</a>
 	</div>
 </body>
 </html>`)
 	}))
-	defer ts.Close()
+	defer ts1.Close()
+	ts2 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintln(w, `<html>
+<body>
+	<div class="item">
+		<p class="title">Title 3</p>
+		<a class="link" href="http://title3.com/">Title 3</a>
+	</div>
+</body>
+</html>`)
+	}))
+	defer ts2.Close()
 
 	expectedFeedStr := `<?xml version="1.0" encoding="UTF-8" ?>
 <rss version="2.0">
 <channel>
-  <title>` + ts.URL + `</title>
-  <link>` + ts.URL + `</link>
+  <title>` + ts1.URL + `</title>
+  <link>` + ts1.URL + `</link>
   <description>This RSS was scraped</description>
   <item>
     <title>Title 1</title>
@@ -40,12 +51,18 @@ func TestScrape(t *testing.T) {
     <link>http://title2.com/</link>
     <description>Title 2</description>
   </item>
+  <item>
+    <title>Title 3</title>
+    <link>http://title3.com/</link>
+    <description>Title 3</description>
+  </item>
 </channel>
 </rss>`
 
 	conf := scrape{
 		URLs: []string{
-			ts.URL,
+			ts1.URL,
+			ts2.URL,
 		},
 		Item:  ".item",
 		Title: ".title",
