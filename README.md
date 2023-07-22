@@ -7,6 +7,20 @@ A simple RSS Reader inspired by Google Reader.
 It's just a single binary with a single config file, feeds are viewed via your web browser. No apps, no web servers, no signing in, no analytics,
 no ads, no recommendations, no growth objectives, absolutely nothing special at all.
 
+## Background
+
+I miss Google Reader, it put me in charge of how I triaged information. One place, one interface. When it was discontinued in 2013 I tried a few alternatives but nothing really stuck.
+With the growth of Twitter at the time I could get some aspect of what I lost, and so it was for many years. However, between 2013 and the 2020 Twitter greatly lessened my ability to
+control how I consumed information.
+
+A few years on from leaving Twitter I realised I'd gone back to jumping between various sites to scan their headlines, maintaining that list of sites purely in my head.
+
+Then I had a Clown College moment but for creating an RSS reader that gave me the same feels as Google Reader. Not only is it a fun exercise, it turns out RSS is more alive and
+kicking than I gave it credit for. In only a few short hours I had something that started to feel right. I've been using it as my main information triage ever since.
+
+The name is a pun on 'rissole'. Firstly it contains the letters r s and s and secondly because "a compressed mixture of meat and spices, coated in breadcrumbs and fried"
+didn't strike me as that dissimilar from the job of an RSS reader.
+
 ## Pre-Built Binaries
 
 Check out the [Releases](https://github.com/TheMightyGit/rssole/releases/) section in github, there should be a good selection of pre-built binaries
