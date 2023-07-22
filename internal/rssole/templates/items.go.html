@@ -18,7 +18,11 @@
         </form>
       </div>
       <div class="col text-end">
-        <a class="lead link-primary link-underline-opacity-0" href="{{.Link}}">{{.Title}}</a>
+        {{if .Link}}
+        <a target="_new" class="lead link-primary link-underline-opacity-0" href="{{.Link}}">{{.Title}}</a>
+        {{else}}
+        <span class="lead">{{.Title}}</span>
+        {{end}}
       </div>
     </div>
   </div>
