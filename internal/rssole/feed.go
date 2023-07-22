@@ -31,7 +31,10 @@ type feed struct {
 }
 
 func (f *feed) Link() string {
-	return f.feed.Link
+	if f.feed != nil {
+		return f.feed.Link
+	}
+	return ""
 }
 
 func (f *feed) Title() string {
