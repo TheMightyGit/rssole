@@ -173,6 +173,14 @@ func (w *wrappedItem) Description() string {
 					Val:       "_new",
 				})
 			}
+			if n.Data == "img" || n.Data == "svg" {
+				fmt.Println("making", n.Data, "tag style max-width 60%")
+				n.Attr = append(n.Attr, html.Attribute{
+					Namespace: "",
+					Key:       "style",
+					Val:       "max-width: 60%;",
+				})
+			}
 		}
 		for c := n.FirstChild; c != nil; c = c.NextSibling {
 			f(c)
