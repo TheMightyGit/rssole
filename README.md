@@ -16,7 +16,7 @@ control how I consumed information.
 A few years on from leaving Twitter I realised I'd gone back to jumping between various sites to scan their headlines, maintaining that list of sites purely in my head.
 
 Then I had a Clown College moment but for creating an RSS reader that gave me the same feels as Google Reader. Not only is it a fun exercise, it turns out RSS is more alive and
-kicking than I gave it credit for. In only a few short hours I had something that started to feel right. I've been using it as my main information triage ever since.
+kicking than I gave it credit for. In only a few hours I had something that started to feel right. I've been improving it and using it as my main information triage since.
 
 The name is a pun on 'rissole'. Firstly it contains the letters r s and s and secondly because "a compressed mixture of meat and spices, coated in breadcrumbs and fried"
 didn't strike me as that dissimilar from the role of an RSS reader.
