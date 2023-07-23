@@ -9,8 +9,8 @@ no ads, no recommendations, no growth objectives, absolutely nothing special at 
 
 ## Background
 
-I miss Google Reader, it put me in charge of how I triaged information. One place, one interface. When it was discontinued in 2013 I tried a few alternatives but nothing really stuck.
-With the growth of Twitter at the time I could get some aspect of what I lost, and so it was for many years. However, between 2013 and the 2020 Twitter greatly lessened my ability to
+I miss Google Reader and the way it put me in charge of how I triaged information. One place, one interface. When it was discontinued in 2013 I tried a few alternatives but nothing really stuck.
+With the growth of Twitter at the time I could get some aspect of what I lost, and so it was for many years. However, between 2013 and 2020 Twitter greatly lessened my ability to
 control how I consumed information.
 
 A few years on from leaving Twitter I realised I'd gone back to jumping between various sites to scan their headlines, maintaining that list of sites purely in my head.
@@ -19,7 +19,7 @@ Then I had a Clown College moment but for creating an RSS reader that gave me th
 kicking than I gave it credit for. In only a few short hours I had something that started to feel right. I've been using it as my main information triage ever since.
 
 The name is a pun on 'rissole'. Firstly it contains the letters r s and s and secondly because "a compressed mixture of meat and spices, coated in breadcrumbs and fried"
-didn't strike me as that dissimilar from the job of an RSS reader.
+didn't strike me as that dissimilar from the role of an RSS reader.
 
 ## Pre-Built Binaries
 
