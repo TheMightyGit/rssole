@@ -29,7 +29,6 @@ jobs:
           report: 'true'
           chart: 'true'
           amend: 'false'
-          token: ${{ secrets.GH_TOKEN }}
         #if: |
         #    matrix.os == 'ubuntu-latest' &&
         #    github.event_name == 'push'  
