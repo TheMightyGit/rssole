@@ -29,7 +29,6 @@ jobs:
           report: 'true'
           chart: 'true'
           amend: 'false'
-        with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
         #if: |
         #    matrix.os == 'ubuntu-latest' &&
