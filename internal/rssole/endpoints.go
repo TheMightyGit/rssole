@@ -92,7 +92,7 @@ func item(w http.ResponseWriter, req *http.Request) {
 		f.mu.RLock()
 		if f.feed != nil && f.URL == feedURL {
 			for _, item := range f.Items() {
-				if item.Link == id {
+				if item.ID() == id {
 					item.IsUnread = false
 					if err := templates["item.go.html"].Execute(w, item); err != nil {
 						log.Println(err)

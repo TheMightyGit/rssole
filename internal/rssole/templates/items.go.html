@@ -40,7 +40,7 @@
 
       <div id="collapse{{$idx}}" class="accordion-collapse collapse" data-bs-parent="#itemsAccordion">
         <div class="accordion-body m-0 p-2">
-          <div hx-get="/item?id={{$item.Link | urlquery}}&url={{$.URL | urlquery}}"
+          <div hx-get="/item?id={{$item.ID}}&url={{$.URL | urlquery}}"
                hx-swap="outerHTML"
                hx-trigger="intersect once"
                class="summary">
