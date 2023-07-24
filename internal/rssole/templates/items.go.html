@@ -1,7 +1,14 @@
 <div id="items">
   <div class="container m-0 p-0">
     <div class="row">
-      <div class="col">
+      <div class="col col-sm-8">
+        {{if .Link}}
+        <a target="_new" class="lead link-primary link-underline-opacity-0" href="{{.Link}}">{{.Title}}</a>
+        {{else}}
+        <span class="lead">{{.Title}}</span>
+        {{end}}
+      </div>
+      <div class="col col-sm-4 text-end">
         <form hx-post="/items?url={{.URL | urlquery}}" hx-target="#items">
         {{range $idx, $item := .Items}}
           {{if $item.IsUnread}}
@@ -14,15 +21,8 @@
             hx-swap="outerHTML"
             class="btn btn-primary p-1"><small>
               <i class="bi-check2-square"></i>
-              Mark All As Read</small></button>
+              Mark All Read</small></button>
         </form>
-      </div>
-      <div class="col text-end">
-        {{if .Link}}
-        <a target="_new" class="lead link-primary link-underline-opacity-0" href="{{.Link}}">{{.Title}}</a>
-        {{else}}
-        <span class="lead">{{.Title}}</span>
-        {{end}}
       </div>
     </div>
   </div>
