@@ -1,5 +1,3 @@
-[![Go Coverage](https://github.com/TheMightyGit/rssole/wiki/coverage.svg)](https://raw.githack.com/wiki/TheMightyGit/rssole/coverage.html)
-
 # rssole
 
 A simple RSS Reader inspired by Google Reader.
