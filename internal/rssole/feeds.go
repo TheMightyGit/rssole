@@ -9,7 +9,7 @@ import (
 
 type feeds struct {
 	Feeds    []*feed `json:"feeds"`
-	Selected string
+	Selected string  // FIXME: Ugh! viewer state held here is bad as we coud have mutiple simultaneous viewers.
 	mu       sync.RWMutex
 }
 

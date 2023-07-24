@@ -5,7 +5,6 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-	"time"
 )
 
 func index(w http.ResponseWriter, req *http.Request) {
@@ -60,14 +59,14 @@ func items(w http.ResponseWriter, req *http.Request) {
 					if markRead[i.Link] {
 						log.Println("marking read", i.Link)
 						i.IsUnread = false
-						readLut[i.Link] = time.Now()
+						readLut.markRead(i.Link)
 					}
 				}
 				f.mu.Unlock()
 			}
 		}
 
-		persistReadLut()
+		readLut.persistReadLut()
 	}
 
 	for _, f := range allFeeds.Feeds {
@@ -98,8 +97,8 @@ func item(w http.ResponseWriter, req *http.Request) {
 					if err := templates["item.go.html"].Execute(w, item); err != nil {
 						log.Println(err)
 					}
-					readLut[item.Link] = time.Now()
-					persistReadLut()
+					readLut.markRead(item.Link)
+					readLut.persistReadLut()
 					break
 				}
 			}

@@ -8,41 +8,57 @@ import (
 	"time"
 )
 
-var (
-	readLut   = map[string]time.Time{}
-	readLutMu sync.Mutex
-)
+type unreadLut struct {
+	Filename string
 
-func loadReadLut() {
-	readLutMu.Lock()
-	defer readLutMu.Unlock()
+	lut map[string]time.Time
+	mu  sync.RWMutex
+}
 
-	f, err := os.ReadFile("readcache.json")
+func (u *unreadLut) loadReadLut() {
+	u.mu.Lock()
+	defer u.mu.Unlock()
+
+	body, err := os.ReadFile(u.Filename)
 	if err != nil {
 		log.Println(err)
 	} else {
-		err = json.Unmarshal(f, &readLut)
+		err = json.Unmarshal(body, &u.lut)
 		if err != nil {
 			log.Fatalln("unmarshall readlut:", err)
 		}
 	}
 }
 
-func isUnread(url string) bool {
-	_, found := readLut[url]
+func (u *unreadLut) isUnread(url string) bool {
+	u.mu.RLock()
+	defer u.mu.RUnlock()
+
+	_, found := u.lut[url]
 	return !found
 }
 
-func persistReadLut() {
-	readLutMu.Lock()
-	defer readLutMu.Unlock()
+func (u *unreadLut) markRead(url string) {
+	u.mu.Lock()
+	defer u.mu.Unlock()
 
-	jsonString, err := json.Marshal(readLut)
+	if u.lut == nil {
+		u.lut = map[string]time.Time{}
+	}
+
+	u.lut[url] = time.Now()
+}
+
+func (u *unreadLut) persistReadLut() {
+	u.mu.Lock()
+	defer u.mu.Unlock()
+
+	jsonString, err := json.Marshal(u.lut)
 	if err != nil {
 		log.Fatalln("marshalling readlut:", err)
 	}
-	err = os.WriteFile("readcache.json", jsonString, 0644)
+	err = os.WriteFile(u.Filename, jsonString, 0644)
 	if err != nil {
-		log.Fatalln("writefile readcache.json:", err)
+		log.Fatalln("writefile", u.Filename, ":", err)
 	}
 }

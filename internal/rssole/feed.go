@@ -88,7 +88,7 @@ func (f *feed) Update() {
 	f.wrappedItems = make([]*wrappedItem, len(f.feed.Items))
 	for idx, item := range f.feed.Items {
 		f.wrappedItems[idx] = &wrappedItem{
-			IsUnread: isUnread(item.Link),
+			IsUnread: readLut.isUnread(item.Link),
 			Feed:     f,
 			Item:     item,
 		}

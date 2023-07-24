@@ -40,6 +40,12 @@ func readFeedsFile() {
 	}
 }
 
+var (
+	readLut = &unreadLut{
+		Filename: "readcache.json",
+	}
+)
+
 func loadTemplates() {
 	if templates == nil {
 		templates = make(map[string]*template.Template)
@@ -65,7 +71,7 @@ func loadTemplates() {
 
 func Start(listenAddress string, updateTimeSeconds time.Duration) {
 	loadTemplates()
-	loadReadLut()
+	readLut.loadReadLut()
 	readFeedsFile()
 
 	allFeeds.BeginFeedUpdates(updateTimeSeconds)
