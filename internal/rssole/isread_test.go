@@ -3,6 +3,7 @@ package rssole
 import (
 	"os"
 	"testing"
+	"time"
 )
 
 func TestIsUnread(t *testing.T) {
@@ -58,5 +59,21 @@ func TestIsUnread(t *testing.T) {
 	}
 	if !readLut2.isUnread("this_is_unread") {
 		t.Fatal("this_is_unread should be unread after reloading")
+	}
+}
+
+func TestRemoveOld(t *testing.T) {
+	readLut := unreadLut{}
+	readLut.markRead("something")
+
+	if readLut.isUnread("something") {
+		t.Fatal("something should exist before cleanup")
+	}
+
+	before := time.Now().Add(1 * time.Minute)
+	readLut.removeOldEntries(before)
+
+	if !readLut.isUnread("something") {
+		t.Fatal("something should no longer be present after cleanup")
 	}
 }
