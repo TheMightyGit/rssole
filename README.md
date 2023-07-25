@@ -1,3 +1,5 @@
+![badge](./badge.svg)
+
 # rssole
 
 An RSS Reader inspired by the late Google Reader.
