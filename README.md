@@ -1,6 +1,6 @@
 # rssole
 
-An RSS Reader inspired by Google Reader.
+An RSS Reader inspired by the late Google Reader.
 
 ![Screenshot 2023-07-22 at 21 16 25](https://github.com/TheMightyGit/rssole/assets/888751/703bd856-e777-4010-91ea-a8e5487f48b4)
 
@@ -9,7 +9,7 @@ no ads, no recommendations, no growth objectives, absolutely nothing special at 
 
 ## Background
 
-I really miss Google Reader, and I noticed that recently I'd gone back to an old habbit of jumping between various sites to scan their headlines, maintaining that sitelist of purely in my head.
+I really miss Google Reader, and recently noticed I'd gone back to an old habbit of jumping between various sites to scan their headlines, maintaining that sitelist purely in my head.
 
 So I made my own non-SaaS ode to Google Reader so that I can triage my incoming information in one place with one interface in a way I like.
 
