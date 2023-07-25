@@ -72,6 +72,7 @@ func loadTemplates() {
 func Start(listenAddress string, updateTimeSeconds time.Duration) {
 	loadTemplates()
 	readLut.loadReadLut()
+	readLut.startCleanupTicker()
 	readFeedsFile()
 
 	allFeeds.BeginFeedUpdates(updateTimeSeconds)

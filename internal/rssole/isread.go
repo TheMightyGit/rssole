@@ -2,6 +2,7 @@ package rssole
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"os"
 	"sync"
@@ -26,6 +27,35 @@ func (u *unreadLut) loadReadLut() {
 		err = json.Unmarshal(body, &u.lut)
 		if err != nil {
 			log.Fatalln("unmarshall readlut:", err)
+		}
+	}
+}
+
+func (u *unreadLut) startCleanupTicker() {
+	ago := -60 * time.Hour * 24 // 60 days ago
+	before := time.Now().Add(ago)
+	readLut.removeOldEntries(before)
+	readLut.persistReadLut()
+
+	go func() {
+		ticker := time.NewTicker(6 * time.Hour)
+		for range ticker.C {
+			before = time.Now().Add(ago)
+			readLut.removeOldEntries(before)
+			readLut.persistReadLut()
+		}
+	}()
+}
+
+func (u *unreadLut) removeOldEntries(before time.Time) {
+	u.mu.Lock()
+	defer u.mu.Unlock()
+
+	fmt.Println("removing readcache entries before", before)
+	for url, when := range u.lut {
+		if when.Before(before) {
+			log.Println("removing old from readcache", url, when)
+			delete(u.lut, url)
 		}
 	}
 }
