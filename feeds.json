@@ -11,6 +11,7 @@
     {"url":"https://www.rockpapershotgun.com/feed", "category":"Games"},
     {"url":"https://gamedev.stackexchange.com/feeds", "category":"GameDev"},
     {"url":"https://gamedev.net/articles/feed", "category":"GameDev"},
+    {"url":"https://www.gamesindustry.biz/feed/news", "category":"GameDev"},
     {"url":"https://www.phoronix.com/rss.php", "category":"Nerd"},
     {"url":"https://mas.to/@curiousordinary.rss", "category":"Mastodon"},
     {"url":"https://mstdn.social/@TheMightyGit.rss", "category":"Mastodon"},
