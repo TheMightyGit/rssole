@@ -116,11 +116,6 @@ Use `category` to group similar feeds together.
 }
 ```
 
-## Notes / TODOs / Warnings
-
-- `readcache.json` (which notes which URLs you've marked as read) grows unbounded at the moment.
-- Few tests and some poor error handling in places. It's very much prototype code right now.
-
 ## Key Dependencies
 
 I haven't had to implement anything actually difficult, I just do a bit of plumbing.
