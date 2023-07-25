@@ -1,6 +1,6 @@
 # rssole
 
-A simple RSS Reader inspired by Google Reader.
+An RSS Reader inspired by Google Reader.
 
 ![Screenshot 2023-07-22 at 21 16 25](https://github.com/TheMightyGit/rssole/assets/888751/703bd856-e777-4010-91ea-a8e5487f48b4)
 
@@ -9,16 +9,11 @@ no ads, no recommendations, no growth objectives, absolutely nothing special at 
 
 ## Background
 
-I miss Google Reader and the way it put me in charge of how I triaged information. One place, one interface. When it was discontinued in 2013 I tried a few alternatives but nothing really stuck.
-With the growth of Twitter at the time I could get some aspect of what I lost, and so it was for many years. However, between 2013 and 2020 Twitter greatly lessened my ability to
-control how I consumed information.
+I really miss Google Reader, and I noticed that recently I'd gone back to an old habbit of jumping between various sites to scan their headlines, maintaining that sitelist of purely in my head.
 
-A few years on from leaving Twitter I realised I'd gone back to jumping between various sites to scan their headlines, maintaining that list of sites purely in my head.
+So I made my own non-SaaS ode to Google Reader so that I can triage my incoming information in one place with one interface in a way I like.
 
-Then I had a Clown College moment but for creating an RSS reader that gave me the same feels as Google Reader. Not only is it a fun exercise, it turns out RSS is more alive and
-kicking than I gave it credit for. In only a few hours I had something that started to feel right. I've been improving it and using it as my main information triage since.
-
-The name is a pun on 'rissole'. Firstly it contains the letters r s and s and secondly because "a compressed mixture of meat and spices, coated in breadcrumbs and fried"
+The name is a pun on 'rissole'. Firstly it contains the letters R S and S and secondly because "a compressed mixture of meat and spices, coated in breadcrumbs and fried"
 didn't strike me as that dissimilar from the role of an RSS reader.
 
 ## Pre-Built Binaries
@@ -122,7 +117,7 @@ Use `category` to group similar feeds together.
 ## Notes / TODOs / Warnings
 
 - `readcache.json` (which notes which URLs you've marked as read) grows unbounded at the moment.
-- No tests and some poor error handling in places. It's very much prototype code right now.
+- Few tests and some poor error handling in places. It's very much prototype code right now.
 
 ## Key Dependencies
 
