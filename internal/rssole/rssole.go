@@ -2,11 +2,9 @@ package rssole
 
 import (
 	"embed"
-	"encoding/json"
 	"io/fs"
 	"log"
 	"net/http"
-	"os"
 	"text/template"
 	"time"
 )
@@ -23,24 +21,7 @@ var (
 
 var (
 	allFeeds = &feeds{}
-)
-
-func readFeedsFile() {
-	jsonFile, err := os.Open("feeds.json")
-	if err != nil {
-		log.Fatalf("Error opening file: %v", err)
-	}
-	defer jsonFile.Close()
-
-	d := json.NewDecoder(jsonFile)
-	err = d.Decode(allFeeds)
-	if err != nil {
-		log.Fatalf("Error unmarshalling JSON: %v", err)
-	}
-}
-
-var (
-	readLut = &unreadLut{
+	readLut  = &unreadLut{
 		Filename: "readcache.json",
 	}
 )
@@ -70,17 +51,20 @@ func loadTemplates() {
 
 func Start(listenAddress string, updateTimeSeconds time.Duration) {
 	loadTemplates()
+
 	readLut.loadReadLut()
 	readLut.startCleanupTicker()
-	readFeedsFile()
 
+	if err := allFeeds.readFeedsFile("feeds.json"); err != nil {
+		log.Fatalln(err)
+	}
 	allFeeds.BeginFeedUpdates(updateTimeSeconds)
 
 	http.HandleFunc("/", index)
 	http.HandleFunc("/feeds", feedlist)
 	http.HandleFunc("/items", items)
 	http.HandleFunc("/item", item)
-	http.HandleFunc("/addfeed", addfeed)
+	// http.HandleFunc("/addfeed", addfeed)
 
 	log.Printf("Listening on %s\n", listenAddress)
 	if err := http.ListenAndServe(listenAddress, nil); err != nil {

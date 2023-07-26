@@ -1,10 +1,8 @@
 package rssole
 
 import (
-	"fmt"
 	"log"
 	"net/http"
-	"net/url"
 )
 
 func index(w http.ResponseWriter, req *http.Request) {
@@ -108,6 +106,7 @@ func item(w http.ResponseWriter, req *http.Request) {
 	allFeeds.mu.RUnlock()
 }
 
+/*
 func addfeed(w http.ResponseWriter, req *http.Request) {
 	if req.Method == "GET" {
 		if err := templates["addfeed.go.html"].Execute(w, nil); err != nil {
@@ -137,3 +136,4 @@ func addfeed(w http.ResponseWriter, req *http.Request) {
 		fmt.Fprintf(w, `<div id="items" hx-get="/items?url=%s" hx-trigger="load" hx-target="#items"></div>`, url.QueryEscape(feed.URL))
 	}
 }
+*/
