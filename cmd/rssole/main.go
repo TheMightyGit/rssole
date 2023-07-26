@@ -41,8 +41,9 @@ func getFeedsFileConfigSection(filename string) configSection {
 }
 
 func main() {
-	var configFilename string
+	var configFilename, configReadCacheFilename string
 	flag.StringVar(&configFilename, "c", "feeds.json", "config filename")
+	flag.StringVar(&configReadCacheFilename, "r", "readcache.json", "readcache location")
 	flag.Parse()
 
 	cfg := getFeedsFileConfigSection(configFilename)
@@ -54,5 +55,5 @@ func main() {
 		cfg.UpdateSeconds = defaultUpdateTimeSeconds
 	}
 
-	rssole.Start(configFilename, cfg.Listen, time.Duration(cfg.UpdateSeconds)*time.Second)
+	rssole.Start(configFilename, configReadCacheFilename, cfg.Listen, time.Duration(cfg.UpdateSeconds)*time.Second)
 }
