@@ -21,9 +21,7 @@ var (
 
 var (
 	allFeeds = &feeds{}
-	readLut  = &unreadLut{
-		Filename: "readcache.json",
-	}
+	readLut  = &unreadLut{}
 )
 
 func loadTemplates() {
@@ -49,9 +47,10 @@ func loadTemplates() {
 	}
 }
 
-func Start(configFilename, listenAddress string, updateTimeSeconds time.Duration) {
+func Start(configFilename, configReadCacheFilename, listenAddress string, updateTimeSeconds time.Duration) {
 	loadTemplates()
 
+	readLut.Filename = configReadCacheFilename
 	readLut.loadReadLut()
 	readLut.startCleanupTicker()
 
