@@ -127,11 +127,15 @@ func (f *feed) Update() error {
 
 func (f *feed) StartTickedUpdate() {
 	go func() {
-		f.Update()
+		if err := f.Update(); err != nil {
+			log.Println("error during update of", f.URL, err)
+		}
 		ticker := time.NewTicker(f.updateTime)
 		log.Println("Started update ticker of", f.updateTime, "for", f.URL)
 		for range ticker.C {
-			f.Update()
+			if err := f.Update(); err != nil {
+				log.Println("error during update of", f.URL, err)
+			}
 		}
 	}()
 }
