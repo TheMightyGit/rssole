@@ -1,5 +1,5 @@
 {{define "components/feedline"}}
-  <span class="w-25 badge {{if gt .UnreadItemCount 0}}bg-danger{{else}}bg-secondary{{end}} rounded-pill">{{.UnreadItemCount}}</span>
+  <span class="w-25 badge {{if gt .UnreadItemCount 0}}bg-danger{{else}}bg-secondary{{end}}">{{.UnreadItemCount}}</span>
   &nbsp;
   <span class="text-truncate w-100">{{.Title}}</span>
   &nbsp;

@@ -1,30 +1,26 @@
 <div id="feeds" {{if .Selected}}hx-swap-oob="true"{{end}}>
-  <div class="list-group">
   {{range $category, $feeds := .FeedTree}}
-    <span class="list-group-item-light m-0 p-0 d-inline-block text-truncate"
-          xxx-data-bs-toggle="collapse" xxx-data-bs-target="#{{$category}}">
-      <small><small>{{$category}}</small></small>
-    </span>
+  <small><small>{{$category}}</small></small>
+  <div class="list-group">
     {{range $feeds}}
-    <!-- span id="{{$category}}" class="collapse m-0 p-0" -->
-<a id="feed{{.ID}}" class="p-1 {{if eq $.Selected .Title}}active{{end}} list-group-item list-group-item-action d-flex flex-row"
-  hx-get="/items?url={{.URL | urlquery}}"
-  hx-target="#items"
-  hx-swap="outerHTML">
+    <a id="feed{{.ID}}"
+       class="p-1 {{if eq $.Selected .Title}}active{{end}} list-group-item list-group-item-action d-flex flex-row"
+       hx-get="/items?url={{.URL | urlquery}}"
+       hx-target="#items"
+       hx-swap="outerHTML">
       {{template "components/feedline" .}}
-</a>
-    <!-- /span -->
+    </a>
     {{end}}
-  {{end}}
   </div>
+  {{end}}
   <!-- button
     hx-get="/addfeed"
     hx-target="#items"
     hx-swap="outerHTML"
     class="btn btn-primary p-1">
     <small>
-        <i class="bi-plus-square-dotted"></i>
-        Add Feed
+    <i class="bi-plus-square-dotted"></i>
+    Add Feed
     </small>
-  </button -->
+    </button -->
 </div>
