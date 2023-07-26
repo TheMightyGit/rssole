@@ -2,7 +2,6 @@ package rssole
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"os"
 	"sync"
@@ -51,7 +50,7 @@ func (u *unreadLut) removeOldEntries(before time.Time) {
 	u.mu.Lock()
 	defer u.mu.Unlock()
 
-	fmt.Println("removing readcache entries before", before)
+	log.Println("removing readcache entries before", before)
 	for url, when := range u.lut {
 		if when.Before(before) {
 			log.Println("removing old from readcache", url, when)
