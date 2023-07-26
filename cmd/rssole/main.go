@@ -23,8 +23,8 @@ type configSection struct {
 	UpdateSeconds int    `json:"update_seconds"`
 }
 
-func getFeedsFileConfigSection() configSection {
-	jsonFile, err := os.Open("feeds.json")
+func getFeedsFileConfigSection(filename string) configSection {
+	jsonFile, err := os.Open(filename)
 	if err != nil {
 		log.Fatalf("Error opening file: %v", err)
 	}
@@ -40,7 +40,7 @@ func getFeedsFileConfigSection() configSection {
 }
 
 func main() {
-	cfg := getFeedsFileConfigSection()
+	cfg := getFeedsFileConfigSection("feeds.json")
 
 	if cfg.Listen == "" {
 		cfg.Listen = defaultListenAddress

@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
 	"strings"
 	"testing"
@@ -138,7 +139,7 @@ func TestFeedlist(t *testing.T) {
 	}
 }
 
-func TestItems(t *testing.T) {
+func TestItemsGet(t *testing.T) {
 	defer setUpTearDown(t)(t)
 
 	req, err := http.NewRequest("GET", "/items?url=http://example.com/yay_feed", nil)
@@ -170,6 +171,52 @@ func TestItems(t *testing.T) {
 			t.Errorf("handler returned page without expected content: got %v could not find '%v'",
 				rr.Body.String(), expectedToFind)
 		}
+	}
+}
+
+func TestItemsPostMarkAsRead(t *testing.T) {
+	defer setUpTearDown(t)(t)
+
+	data := url.Values{}
+	data.Add("read", "http://example.com/story/66")
+	data.Add("read", "http://example.com/story/1")
+	data.Add("read", "http://example.com/story/99")
+
+	body := strings.NewReader(data.Encode())
+	req, err := http.NewRequest("POST", "/items?url=http://example.com/yay_feed", body)
+	if err != nil {
+		t.Fatal(err)
+	}
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+
+	// We create a ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
+	rr := httptest.NewRecorder()
+	handler := http.HandlerFunc(items)
+
+	// Our handlers satisfy http.Handler, so we can call their ServeHTTP method
+	// directly and pass in our Request and ResponseRecorder.
+	handler.ServeHTTP(rr, req)
+
+	// Check the status code is what we expect.
+	if status := rr.Code; status != http.StatusOK {
+		t.Errorf("handler returned wrong status code: got %v want %v",
+			status, http.StatusOK)
+	}
+
+	for _, expectedToFind := range []string{
+		"Yay Feed!",
+		"Mark All Read",
+		"Story 1 Title",
+		"Story 1 Description",
+	} {
+		if !strings.Contains(rr.Body.String(), expectedToFind) {
+			t.Errorf("handler returned page without expected content: got %v could not find '%v'",
+				rr.Body.String(), expectedToFind)
+		}
+	}
+
+	if readLut.isUnread("http://example.com/story/1") {
+		t.Fatal("story should have been marked read")
 	}
 }
 
