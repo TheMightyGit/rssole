@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/md5"
 	"encoding/hex"
+	"fmt"
 	"log"
 	"net/url"
 	"sort"
@@ -62,7 +63,7 @@ func (f *feed) Items() []*wrappedItem {
 	return f.wrappedItems
 }
 
-func (f *feed) Update() {
+func (f *feed) Update() error {
 	var err error
 
 	fp := gofeed.NewParser()
@@ -72,13 +73,12 @@ func (f *feed) Update() {
 		pseudoRss := f.Scrape.GeneratePseudoRssFeed()
 		feed, err = fp.ParseString(pseudoRss)
 		if err != nil {
-			log.Fatalln("rss parsestring", f.URL, err)
+			return fmt.Errorf("rss parsestring %s %w", f.URL, err)
 		}
 	} else {
 		feed, err = fp.ParseURL(f.URL)
 		if err != nil {
-			log.Println("rss parseurl", f.URL, err)
-			return
+			return fmt.Errorf("rss parseurl %s %w", f.URL, err)
 		}
 	}
 
@@ -121,15 +121,21 @@ func (f *feed) Update() {
 	f.mu.Unlock()
 
 	log.Println("Updated:", f.URL)
+
+	return nil
 }
 
 func (f *feed) StartTickedUpdate() {
 	go func() {
-		f.Update()
+		if err := f.Update(); err != nil {
+			log.Println("error during update of", f.URL, err)
+		}
 		ticker := time.NewTicker(f.updateTime)
 		log.Println("Started update ticker of", f.updateTime, "for", f.URL)
 		for range ticker.C {
-			f.Update()
+			if err := f.Update(); err != nil {
+				log.Println("error during update of", f.URL, err)
+			}
 		}
 	}()
 }
