@@ -49,13 +49,13 @@ func loadTemplates() {
 	}
 }
 
-func Start(listenAddress string, updateTimeSeconds time.Duration) {
+func Start(configFilename, listenAddress string, updateTimeSeconds time.Duration) {
 	loadTemplates()
 
 	readLut.loadReadLut()
 	readLut.startCleanupTicker()
 
-	if err := allFeeds.readFeedsFile("feeds.json"); err != nil {
+	if err := allFeeds.readFeedsFile(configFilename); err != nil {
 		log.Fatalln(err)
 	}
 	allFeeds.BeginFeedUpdates(updateTimeSeconds)

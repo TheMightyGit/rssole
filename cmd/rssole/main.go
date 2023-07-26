@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"log"
 	"os"
 	"time"
@@ -40,7 +41,11 @@ func getFeedsFileConfigSection(filename string) configSection {
 }
 
 func main() {
-	cfg := getFeedsFileConfigSection("feeds.json")
+	var configFilename string
+	flag.StringVar(&configFilename, "c", "feeds.json", "config filename")
+	flag.Parse()
+
+	cfg := getFeedsFileConfigSection(configFilename)
 
 	if cfg.Listen == "" {
 		cfg.Listen = defaultListenAddress
@@ -49,5 +54,5 @@ func main() {
 		cfg.UpdateSeconds = defaultUpdateTimeSeconds
 	}
 
-	rssole.Start(cfg.Listen, time.Duration(cfg.UpdateSeconds)*time.Second)
+	rssole.Start(configFilename, cfg.Listen, time.Duration(cfg.UpdateSeconds)*time.Second)
 }
