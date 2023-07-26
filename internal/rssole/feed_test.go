@@ -11,7 +11,6 @@ import (
 
 /* TODO:
 
-Description - test that making safe html works
 Scrape during Update - test it works
 
 */
