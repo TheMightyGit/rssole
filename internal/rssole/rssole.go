@@ -3,7 +3,6 @@ package rssole
 import (
 	"embed"
 	"encoding/json"
-	"fmt"
 	"io/fs"
 	"log"
 	"net/http"
@@ -83,7 +82,7 @@ func Start(listenAddress string, updateTimeSeconds time.Duration) {
 	http.HandleFunc("/item", item)
 	http.HandleFunc("/addfeed", addfeed)
 
-	fmt.Printf("Listening on %s\n", listenAddress)
+	log.Printf("Listening on %s\n", listenAddress)
 	if err := http.ListenAndServe(listenAddress, nil); err != nil {
 		log.Fatalln(err)
 	}

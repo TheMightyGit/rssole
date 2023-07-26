@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"crypto/md5"
 	"encoding/hex"
-	"fmt"
 	"log"
 	"net/url"
 	"sort"
@@ -161,12 +160,12 @@ func (w *wrappedItem) Description() string {
 		if n.Type == html.ElementNode {
 			//fmt.Println(n.Data)
 			if n.Data == "script" || n.Data == "style" || n.Data == "link" || n.Data == "meta" || n.Data == "iframe" {
-				fmt.Println("removing", n.Data, "tag")
+				// fmt.Println("removing", n.Data, "tag")
 				toDelete = append(toDelete, n)
 				return
 			}
 			if n.Data == "a" {
-				fmt.Println("making", n.Data, "tag target new tab")
+				// fmt.Println("making", n.Data, "tag target new tab")
 				n.Attr = append(n.Attr, html.Attribute{
 					Namespace: "",
 					Key:       "target",
@@ -174,7 +173,7 @@ func (w *wrappedItem) Description() string {
 				})
 			}
 			if n.Data == "img" || n.Data == "svg" {
-				fmt.Println("making", n.Data, "tag style max-width 60%")
+				// fmt.Println("making", n.Data, "tag style max-width 60%")
 				n.Attr = append(n.Attr, html.Attribute{
 					Namespace: "",
 					Key:       "style",
