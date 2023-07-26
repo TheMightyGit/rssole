@@ -78,6 +78,17 @@ directly to rssole as I don't need it. Maybe someone will create a docker image 
 
 ## Config
 
+### Arguments
+
+```console
+$ ./rssole -h
+Usage of ./rssole:
+  -c string
+        config filename (default "feeds.json")
+  -r string
+        readcache location (default "readcache.json")
+```
+
 ### `feeds.json`
 
 There are two types of feed definition...
@@ -115,6 +126,7 @@ Use `category` to group similar feeds together.
   ]
 }
 ```
+
 
 ## Key Dependencies
 
