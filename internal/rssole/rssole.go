@@ -2,6 +2,7 @@ package rssole
 
 import (
 	"embed"
+	"fmt"
 	"io/fs"
 	"log"
 	"net/http"
@@ -24,13 +25,13 @@ var (
 	readLut  = &unreadLut{}
 )
 
-func loadTemplates() {
+func loadTemplates() error {
 	if templates == nil {
 		templates = make(map[string]*template.Template)
 	}
 	tmplFiles, err := fs.ReadDir(files, templatesDir)
 	if err != nil {
-		log.Fatalln(err)
+		return fmt.Errorf("loadTemplates readdir - %w", err)
 	}
 
 	for _, tmpl := range tmplFiles {
@@ -40,22 +41,26 @@ func loadTemplates() {
 
 		pt, err := template.ParseFS(files, templatesDir+"/"+tmpl.Name(), templatesDir+"/components/*.go.html")
 		if err != nil {
-			log.Fatalln(err)
+			return fmt.Errorf("loadTemplates parsefs - %w", err)
 		}
 
 		templates[tmpl.Name()] = pt
 	}
+	return nil
 }
 
-func Start(configFilename, configReadCacheFilename, listenAddress string, updateTimeSeconds time.Duration) {
-	loadTemplates()
+func Start(configFilename, configReadCacheFilename, listenAddress string, updateTimeSeconds time.Duration) error {
+	err := loadTemplates()
+	if err != nil {
+		return err
+	}
 
 	readLut.Filename = configReadCacheFilename
 	readLut.loadReadLut()
 	readLut.startCleanupTicker()
 
 	if err := allFeeds.readFeedsFile(configFilename); err != nil {
-		log.Fatalln(err)
+		return err
 	}
 	allFeeds.BeginFeedUpdates(updateTimeSeconds)
 
@@ -67,6 +72,7 @@ func Start(configFilename, configReadCacheFilename, listenAddress string, update
 
 	log.Printf("Listening on %s\n", listenAddress)
 	if err := http.ListenAndServe(listenAddress, nil); err != nil {
-		log.Fatalln(err)
+		return err
 	}
+	return nil
 }
