@@ -69,7 +69,11 @@ func TestScrape(t *testing.T) {
 		Link:  ".link",
 	}
 
-	feedStr := conf.GeneratePseudoRssFeed()
+	feedStr, err := conf.GeneratePseudoRssFeed()
+
+	if err != nil {
+		t.Fatal(feedStr, "error is not nil")
+	}
 
 	if feedStr != expectedFeedStr {
 		t.Fatal(feedStr, "does not equal", expectedFeedStr)

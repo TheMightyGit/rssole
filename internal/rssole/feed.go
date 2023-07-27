@@ -65,7 +65,10 @@ func (f *feed) Update() error {
 	var feed *gofeed.Feed
 
 	if f.Scrape != nil {
-		pseudoRss := f.Scrape.GeneratePseudoRssFeed()
+		pseudoRss, err := f.Scrape.GeneratePseudoRssFeed()
+		if err != nil {
+			return fmt.Errorf("rss GeneratePseudoRssFeed %s %w", f.URL, err)
+		}
 		feed, err = fp.ParseString(pseudoRss)
 		if err != nil {
 			return fmt.Errorf("rss parsestring %s %w", f.URL, err)
