@@ -12,6 +12,8 @@ import (
 /* TODO:
 
 Scrape during Update - test it works
+Unread count
+Sorting
 
 */
 
@@ -99,5 +101,76 @@ func TestUpdate_ValidRssFeed(t *testing.T) {
 
 	if feed.feed == nil {
 		t.Fatal("expected feed not to be nil")
+	}
+}
+
+func TestUpdate_ValidScrape(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintln(w, `<html>
+<body>
+	<div class="item">
+		<p class="title">Title 1</p>
+		<a class="link" href="http://title1.com/">Title 1</a>
+	</div>
+	<div class="item">
+		<p class="title">Title 2</p>
+		<a class="link" href="http://title2.com/">Title 2</a>
+	</div>
+</body>
+</html>`)
+	}))
+	defer ts.Close()
+
+	feed := &feed{
+		URL: ts.URL,
+		Scrape: &scrape{
+			URLs: []string{
+				ts.URL,
+				ts.URL,
+			},
+			Item:  ".item",
+			Title: ".title",
+			Link:  ".link",
+		},
+	}
+
+	err := feed.Update()
+
+	if err != nil {
+		t.Fatal("unexpected error for a valid", err)
+	}
+
+	if feed.feed == nil {
+		t.Fatal("expected feed not to be nil")
+	}
+}
+
+func TestUpdate_InvalidScrape(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(400)
+	}))
+	defer ts.Close()
+
+	feed := &feed{
+		URL: ts.URL,
+		Scrape: &scrape{
+			URLs: []string{
+				ts.URL,
+				ts.URL,
+			},
+			Item:  ".item",
+			Title: ".title",
+			Link:  ".link",
+		},
+	}
+
+	err := feed.Update()
+
+	if err == nil {
+		t.Fatal("expected error for an invalid", err)
+	}
+
+	if feed.feed != nil {
+		t.Fatal("expected feed to be nil")
 	}
 }

@@ -55,5 +55,8 @@ func main() {
 		cfg.UpdateSeconds = defaultUpdateTimeSeconds
 	}
 
-	rssole.Start(configFilename, configReadCacheFilename, cfg.Listen, time.Duration(cfg.UpdateSeconds)*time.Second)
+	err := rssole.Start(configFilename, configReadCacheFilename, cfg.Listen, time.Duration(cfg.UpdateSeconds)*time.Second)
+	if err != nil {
+		log.Fatal(err)
+	}
 }

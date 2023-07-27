@@ -1,7 +1,7 @@
 package rssole
 
 import (
-	"log"
+	"fmt"
 	"net/http"
 
 	"github.com/andybalholm/cascadia"
@@ -15,7 +15,7 @@ type scrape struct {
 	Link  string   `json:"link"`
 }
 
-func (conf *scrape) GeneratePseudoRssFeed() string {
+func (conf *scrape) GeneratePseudoRssFeed() (string, error) {
 	rss := `<?xml version="1.0" encoding="UTF-8" ?>
 <rss version="2.0">
 <channel>
@@ -27,11 +27,14 @@ func (conf *scrape) GeneratePseudoRssFeed() string {
 	for _, url := range conf.URLs {
 		resp, err := http.Get(url)
 		if err != nil {
-			log.Fatalln("get", url, err)
+			return "", fmt.Errorf("get %s %w", url, err)
+		}
+		if resp.StatusCode < 200 || resp.StatusCode > 299 {
+			return "", fmt.Errorf("get non-success %d %s %w", resp.StatusCode, url, err)
 		}
 		doc, err := html.Parse(resp.Body)
 		if err != nil {
-			log.Fatalln("parse", url, err)
+			return "", fmt.Errorf("parse %s %w", url, err)
 		}
 
 		for _, p := range queryAll(doc, conf.Item) {
@@ -55,7 +58,7 @@ func (conf *scrape) GeneratePseudoRssFeed() string {
 	rss += `</channel>
 </rss>`
 
-	return rss
+	return rss, nil
 }
 
 func query(n *html.Node, query string) *html.Node {

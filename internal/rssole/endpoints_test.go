@@ -26,7 +26,7 @@ var (
 
 func init() {
 	// We need the templates lodaed for endpoint tests.
-	loadTemplates()
+	_ = loadTemplates()
 
 	// Set up some test feeds and items.
 	allFeeds.Feeds = append(allFeeds.Feeds, &feed{
