@@ -30,7 +30,8 @@ func feedlistCommon(w http.ResponseWriter, selected string) {
 }
 
 func feedlist(w http.ResponseWriter, req *http.Request) {
-	feedlistCommon(w, "")
+	selected := req.URL.Query().Get("selected")
+	feedlistCommon(w, selected)
 }
 
 func items(w http.ResponseWriter, req *http.Request) {
