@@ -1,5 +1,7 @@
 ![badge](./badge.svg) ![workflow status](https://github.com/TheMightyGit/rssole/actions/workflows/build.yml/badge.svg)
 
+![logo](http://rssole.com/logo.svg)
+
 # rssole
 
 An RSS Reader inspired by the late Google Reader.
