@@ -4,8 +4,8 @@
     <small>{{.PublishedParsed}}</small>
   </div>
   <hr class="w-100" />
-  {{if .Image}}
-    <img src="{{.Image.URL}}" />
+  {{range .Images}}
+    <img style="max-width: 40%;" src="{{.}}" />
   {{end}}
   <div>{{.Description}}</div>
 </div>

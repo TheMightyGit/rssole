@@ -18,11 +18,68 @@ type wrappedItem struct {
 	Feed     *feed
 	*gofeed.Item
 
-	summary *string
+	summary                    *string
+	description                *string
+	descriptionImagesForDedupe *[]string
+	images                     *[]string
+}
+
+func (w *wrappedItem) Images() []string {
+	if w.images != nil { // used cached version
+		return *w.images
+	}
+
+	images := []string{}
+
+	// NOTE: we exclude images that already appear in the description (gibiz)
+
+	// standard supplied image
+	if w.Item.Image != nil {
+		if !w.isDescriptionImage(w.Item.Image.URL) {
+			// fmt.Println(w.Item.Image.URL)
+			images = append(images, w.Item.Image.URL)
+		}
+	}
+
+	// mastodon/gibiz images
+	if media, found := w.Item.Extensions["media"]; found {
+		if content, found := media["content"]; found {
+			for _, v := range content {
+				if v.Attrs["medium"] == "image" {
+					imageUrl := v.Attrs["url"]
+					if !w.isDescriptionImage(imageUrl) {
+						// fmt.Println(w.Description())
+						// fmt.Printf("%v = %+v\n", k, imageUrl)
+						images = append(images, imageUrl)
+					}
+				}
+			}
+		}
+	}
+
+	w.images = &images
+	return *w.images
+}
+
+func (w *wrappedItem) isDescriptionImage(src string) bool {
+	if w.descriptionImagesForDedupe == nil {
+		// force lazy load if it hasn't already
+		_ = w.Description()
+	}
+	for _, v := range *w.descriptionImagesForDedupe {
+		// fmt.Println(v, "==", src)
+		if v == src {
+			return true
+		}
+	}
+	return false
 }
 
 func (w *wrappedItem) Description() string {
-	// TODO: cache to prevent overwork
+	if w.description != nil { // used cached version
+		return *w.description
+	}
+
 	// try and sanitise any html
 	doc, err := html.Parse(strings.NewReader(w.Item.Description))
 	if err != nil {
@@ -31,6 +88,7 @@ func (w *wrappedItem) Description() string {
 		return w.Item.Description
 	}
 
+	w.descriptionImagesForDedupe = &[]string{}
 	toDelete := []*html.Node{}
 
 	var f func(*html.Node)
@@ -58,6 +116,13 @@ func (w *wrappedItem) Description() string {
 					Key:       "style",
 					Val:       "max-width: 60%;",
 				})
+				// keep a note of images so we can de-dupe attached
+				// images that also appear in the content.
+				for _, a := range n.Attr {
+					if a.Key == "src" {
+						*w.descriptionImagesForDedupe = append(*w.descriptionImagesForDedupe, a.Val)
+					}
+				}
 			}
 		}
 		for c := n.FirstChild; c != nil; c = c.NextSibling {
@@ -73,7 +138,9 @@ func (w *wrappedItem) Description() string {
 	renderBuf := bytes.NewBufferString("")
 	_ = html.Render(renderBuf, doc)
 
-	return renderBuf.String()
+	desc := renderBuf.String()
+	w.description = &desc
+	return *w.description
 }
 
 func (w *wrappedItem) Summary() string {
