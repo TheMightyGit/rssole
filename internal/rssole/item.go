@@ -109,7 +109,7 @@ func (w *wrappedItem) Description() string {
 					Val:       "_new",
 				})
 				// disable href if it starts with #
-				for i, _ := range n.Attr {
+				for i := range n.Attr {
 					if n.Attr[i].Key == "href" && n.Attr[i].Val[0] == '#' {
 						n.Attr[i].Key = "xxxhref" // easier than removing the attr
 						break
