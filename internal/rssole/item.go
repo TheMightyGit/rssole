@@ -62,7 +62,7 @@ func (w *wrappedItem) Images() []string {
 }
 
 func (w *wrappedItem) isDescriptionImage(src string) bool {
-	if *w.descriptionImagesForDedupe == nil {
+	if w.descriptionImagesForDedupe == nil {
 		// force lazy load if it hasn't already
 		_ = w.Description()
 	}
