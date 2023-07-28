@@ -20,7 +20,7 @@ type wrappedItem struct {
 
 	summary                    *string
 	description                *string
-	descriptionImagesForDedupe []string
+	descriptionImagesForDedupe *[]string
 	images                     *[]string
 }
 
@@ -62,11 +62,11 @@ func (w *wrappedItem) Images() []string {
 }
 
 func (w *wrappedItem) isDescriptionImage(src string) bool {
-	if len(w.descriptionImagesForDedupe) == 0 {
+	if *w.descriptionImagesForDedupe == nil {
 		// force lazy load if it hasn't already
 		_ = w.Description()
 	}
-	for _, v := range w.descriptionImagesForDedupe {
+	for _, v := range *w.descriptionImagesForDedupe {
 		// fmt.Println(v, "==", src)
 		if v == src {
 			return true
@@ -88,6 +88,7 @@ func (w *wrappedItem) Description() string {
 		return w.Item.Description
 	}
 
+	w.descriptionImagesForDedupe = &[]string{}
 	toDelete := []*html.Node{}
 
 	var f func(*html.Node)
@@ -119,7 +120,7 @@ func (w *wrappedItem) Description() string {
 				// images that also appear in the content.
 				for _, a := range n.Attr {
 					if a.Key == "src" {
-						w.descriptionImagesForDedupe = append(w.descriptionImagesForDedupe, a.Val)
+						*w.descriptionImagesForDedupe = append(*w.descriptionImagesForDedupe, a.Val)
 					}
 				}
 			}
