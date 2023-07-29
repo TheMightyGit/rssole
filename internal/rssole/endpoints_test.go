@@ -166,6 +166,7 @@ func TestItemsGet(t *testing.T) {
 		"Mark All Read",
 		"Story 1 Title",
 		"Story 1 Description",
+		"http://example.com/story/1",
 	} {
 		if !strings.Contains(rr.Body.String(), expectedToFind) {
 			t.Errorf("handler returned page without expected content: got %v could not find '%v'",
@@ -208,6 +209,7 @@ func TestItemsPostMarkAsRead(t *testing.T) {
 		"Mark All Read",
 		"Story 1 Title",
 		"Story 1 Description",
+		"http://example.com/story/1",
 	} {
 		if !strings.Contains(rr.Body.String(), expectedToFind) {
 			t.Errorf("handler returned page without expected content: got %v could not find '%v'",
@@ -245,7 +247,6 @@ func TestItem(t *testing.T) {
 
 	for _, expectedToFind := range []string{
 		"Story 1 Description",
-		"http://example.com/story/1",
 	} {
 		if !strings.Contains(rr.Body.String(), expectedToFind) {
 			t.Errorf("handler returned page without expected content: got\n%v\ncould not find '%v'",
