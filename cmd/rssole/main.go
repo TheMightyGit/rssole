@@ -16,15 +16,10 @@ const (
 )
 
 type configFile struct {
-	Config configSection `json:"config"`
+	Config rssole.ConfigSection `json:"config"`
 }
 
-type configSection struct {
-	Listen        string `json:"listen"`
-	UpdateSeconds int    `json:"update_seconds"`
-}
-
-func getFeedsFileConfigSection(filename string) configSection {
+func getFeedsFileConfigSection(filename string) rssole.ConfigSection {
 	jsonFile, err := os.Open(filename)
 	if err != nil {
 		log.Fatalf("Error opening file: %v", err)

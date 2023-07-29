@@ -161,5 +161,9 @@ func crudfeed(w http.ResponseWriter, req *http.Request) {
 
 			fmt.Fprintf(w, `<div id="items" hx-get="/items?url=%s" hx-trigger="load" hx-target="#items"></div>`, url.QueryEscape(feed.URL))
 		}
+		// something may have changed, so save it.
+		if err := allFeeds.saveFeedsFile(); err != nil {
+			log.Println(err)
+		}
 	}
 }

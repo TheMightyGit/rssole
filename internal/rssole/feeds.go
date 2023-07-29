@@ -12,10 +12,17 @@ import (
 )
 
 type feeds struct {
-	Feeds      []*feed `json:"feeds"`
-	UpdateTime time.Duration
-	Selected   string // FIXME: Ugh! viewer state held here is bad as we coud have mutiple simultaneous viewers.
+	Config     ConfigSection `json:"config"`
+	Feeds      []*feed       `json:"feeds"`
+	UpdateTime time.Duration `json:"-"`
+	Selected   string        `json:"-"` // FIXME: Ugh! viewer state held here is bad as we coud have multiple simultaneous viewers.
 	mu         sync.RWMutex
+	filename   string
+}
+
+type ConfigSection struct {
+	Listen        string `json:"listen"`
+	UpdateSeconds int    `json:"update_seconds"`
 }
 
 func (f *feeds) addFeed(feedToAdd *feed) {
@@ -57,7 +64,9 @@ func (f *feeds) readFeedsFile(filename string) error {
 	allFeeds.mu.Lock()
 	defer allFeeds.mu.Unlock()
 
-	jsonFile, err := os.Open(filename)
+	f.filename = filename
+
+	jsonFile, err := os.Open(f.filename)
 	if err != nil {
 		return fmt.Errorf("Error opening file: %w", err)
 	}
@@ -67,6 +76,25 @@ func (f *feeds) readFeedsFile(filename string) error {
 	err = d.Decode(f)
 	if err != nil {
 		return fmt.Errorf("Error unmarshalling JSON: %w", err)
+	}
+	return nil
+}
+
+func (f *feeds) saveFeedsFile() error {
+	allFeeds.mu.Lock()
+	defer allFeeds.mu.Unlock()
+
+	jsonFile, err := os.Create(f.filename)
+	if err != nil {
+		return fmt.Errorf("Error opening file: %w", err)
+	}
+	defer jsonFile.Close()
+
+	e := json.NewEncoder(jsonFile)
+	e.SetIndent("", "  ")
+	err = e.Encode(allFeeds)
+	if err != nil {
+		return fmt.Errorf("Error marshalling JSON: %w", err)
 	}
 	return nil
 }
