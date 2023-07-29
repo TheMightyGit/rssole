@@ -1,15 +1,15 @@
 <div id="items">
   <form hx-post="/crudfeed" hx-target="#items">
     <div>
-      <label for="formUrl">Feed URL</label>
+      <label for="formUrl" class="text-primary"><b>Feed URL</b></label>
       <input type="text" class="form-control" id="formUrl" name="url" value="{{if .}}{{.URL}}{{end}}">
     </div>
     <div>
-      <label for="formName">Nickname</label>
+      <label for="formName" class="text-primary"><b>Nickname</b></label>
       <input type="text" class="form-control" id="formName" name="name" value="{{if .}}{{.Name}}{{end}}">
     </div>
     <div>
-      <label for="formName">Category</label>
+      <label for="formName" class="text-primary"><b>Category</b></label>
       <input type="text" class="form-control" id="formName" name="category" value="{{if .}}{{.Category}}{{end}}">
     </div>
     <div class="mt-3">
