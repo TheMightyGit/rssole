@@ -19,12 +19,12 @@
 
 <div class="container-fluid">
   <div class="row align-items-start">
-    <div class="col col-sm-3 m-0 p-1">
+    <div class="col col-12 col-sm-3 m-0 p-1">
       <div hx-get="/feeds" hx-trigger="load" hx-swap="outerHTML" id="feeds">
         {{template "components/spinner" .}}
       </div>
     </div>
-    <div class="col col-sm-9 m-0 p-1">
+    <div class="col col-12 col-sm-9 m-0 p-1">
       <div id="items"></div>
     </div>
   </div>

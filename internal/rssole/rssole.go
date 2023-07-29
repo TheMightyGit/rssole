@@ -62,13 +62,14 @@ func Start(configFilename, configReadCacheFilename, listenAddress string, update
 	if err := allFeeds.readFeedsFile(configFilename); err != nil {
 		return err
 	}
-	allFeeds.BeginFeedUpdates(updateTimeSeconds)
+	allFeeds.UpdateTime = updateTimeSeconds
+	allFeeds.BeginFeedUpdates()
 
 	http.HandleFunc("/", index)
 	http.HandleFunc("/feeds", feedlist)
 	http.HandleFunc("/items", items)
 	http.HandleFunc("/item", item)
-	// http.HandleFunc("/addfeed", addfeed)
+	http.HandleFunc("/crudfeed", crudfeed)
 
 	log.Printf("Listening on %s\n", listenAddress)
 	if err := http.ListenAndServe(listenAddress, nil); err != nil {

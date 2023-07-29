@@ -8,7 +8,7 @@
         <span class="lead">{{.Title}}</span>
         {{end}}
       </div>
-      <div class="col col-sm-4 text-end">
+      <div class="col col-sm-4 d-flex flex-row-reverse">
         <form hx-post="/items?url={{.URL | urlquery}}" hx-target="#items">
         {{range $idx, $item := .Items}}
           {{if $item.IsUnread}}
@@ -19,10 +19,19 @@
             type="submit"
             hx-target="#items"
             hx-swap="outerHTML"
-            class="btn btn-primary p-1"><small>
+            class="h-100 btn btn-primary p-1 text-nowrap"><small>
               <i class="bi-check2-square"></i>
               Mark All Read</small></button>
-        </form>
+        </form>&nbsp;<button
+          hx-get="/crudfeed?feed={{.ID}}"
+          hx-target="#items"
+          hx-swap="outerHTML"
+          class="h-100 btn btn-warning p-1 text-nowrap">
+          <small>
+          <i class="bi-pencil-fill"></i>
+          Edit
+          </small>
+        </button>
       </div>
     </div>
   </div>
@@ -40,6 +49,11 @@
 
       <div id="collapse{{$idx}}" class="accordion-collapse collapse" data-bs-parent="#itemsAccordion">
         <div class="accordion-body m-0 p-2">
+          <div class="w-100">
+            <a href="{{.Link}}" target="_new">link</a>
+            <small>{{.PublishedParsed}}</small>
+          </div>
+          <hr class="w-100" />
           <div hx-get="/item?id={{$item.ID}}&url={{$.URL | urlquery}}"
                hx-swap="outerHTML"
                hx-trigger="intersect once"

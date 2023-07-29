@@ -14,14 +14,14 @@ import (
 
 type feed struct {
 	URL      string  `json:"url"`
-	Name     string  `json:"name"`     // optional override name
-	Category string  `json:"category"` // optional grouping
-	Scrape   *scrape `json:"scrape"`
+	Name     string  `json:"name,omitempty"`     // optional override name
+	Category string  `json:"category,omitempty"` // optional grouping
+	Scrape   *scrape `json:"scrape,omitempty"`
 
+	ticker       *time.Ticker
 	feed         *gofeed.Feed
 	mu           sync.RWMutex
 	wrappedItems []*wrappedItem
-	updateTime   time.Duration
 }
 
 func (f *feed) Link() string {
@@ -123,19 +123,30 @@ func (f *feed) Update() error {
 	return nil
 }
 
-func (f *feed) StartTickedUpdate() {
+func (f *feed) StartTickedUpdate(updateTime time.Duration) {
+	if f.ticker != nil {
+		return // already running
+	}
 	go func() {
 		if err := f.Update(); err != nil {
 			log.Println("error during update of", f.URL, err)
 		}
-		ticker := time.NewTicker(f.updateTime)
-		log.Println("Started update ticker of", f.updateTime, "for", f.URL)
-		for range ticker.C {
+		f.ticker = time.NewTicker(updateTime)
+		log.Println("Started update ticker of", updateTime, "for", f.URL)
+		for range f.ticker.C {
 			if err := f.Update(); err != nil {
 				log.Println("error during update of", f.URL, err)
 			}
 		}
 	}()
+}
+
+func (f *feed) StopTickedUpdate() {
+	if f.ticker != nil {
+		log.Println("Stopped update ticker for", f.URL)
+		f.ticker.Stop()
+		f.ticker = nil
+	}
 }
 
 func (f *feed) ID() string {
