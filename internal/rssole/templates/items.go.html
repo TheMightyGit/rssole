@@ -9,6 +9,16 @@
         {{end}}
       </div>
       <div class="col col-sm-4 text-end">
+        <button
+          hx-get="/crudfeed?feed={{.ID}}"
+          hx-target="#items"
+          hx-swap="outerHTML"
+          class="btn btn-primary p-1">
+          <small>
+          <i class="bi-plus-square-dotted"></i>
+          Edit
+          </small>
+        </button>
         <form hx-post="/items?url={{.URL | urlquery}}" hx-target="#items">
         {{range $idx, $item := .Items}}
           {{if $item.IsUnread}}

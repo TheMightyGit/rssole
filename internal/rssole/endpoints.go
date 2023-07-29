@@ -1,8 +1,10 @@
 package rssole
 
 import (
+	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 )
 
 func index(w http.ResponseWriter, req *http.Request) {
@@ -107,10 +109,14 @@ func item(w http.ResponseWriter, req *http.Request) {
 	allFeeds.mu.RUnlock()
 }
 
-/*
-func addfeed(w http.ResponseWriter, req *http.Request) {
+func crudfeed(w http.ResponseWriter, req *http.Request) {
 	if req.Method == "GET" {
-		if err := templates["addfeed.go.html"].Execute(w, nil); err != nil {
+		var f *feed
+		feedID := req.URL.Query().Get("feed")
+		if feedID != "" {
+			f = allFeeds.getFeedByID(feedID)
+		}
+		if err := templates["crudfeed.go.html"].Execute(w, f); err != nil {
 			log.Println(err)
 		}
 	} else if req.Method == "POST" {
@@ -119,22 +125,41 @@ func addfeed(w http.ResponseWriter, req *http.Request) {
 			log.Println(err)
 		}
 
+		id := req.FormValue("id")
 		feedurl := req.FormValue("url")
 		name := req.FormValue("name")
 		category := req.FormValue("category")
 
-		allFeeds.mu.Lock()
-		defer allFeeds.mu.Unlock()
+		if id != "" { // edit or delete
+			del := req.FormValue("delete")
+			if del != "" {
+				allFeeds.delFeed(id)
+				fmt.Fprint(w, `Deleted.`)
+				feedlistCommon(w, "_")
+			} else {
+				// update
+				f := allFeeds.getFeedByID(id)
+				if f != nil {
+					f.mu.Lock()
+					f.URL = feedurl
+					f.Name = name
+					f.Category = category
+					f.mu.Unlock()
+					fmt.Fprint(w, `Updated.`)
+					feedlistCommon(w, f.Title())
+				} else {
+					fmt.Fprint(w, `Not found.`)
+				}
+			}
+		} else { // add
+			feed := &feed{
+				URL:      feedurl,
+				Name:     name,
+				Category: category,
+			}
+			allFeeds.addFeed(feed)
 
-		feed := &feed{
-			URL:      feedurl,
-			Name:     name,
-			Category: category,
+			fmt.Fprintf(w, `<div id="items" hx-get="/items?url=%s" hx-trigger="load" hx-target="#items"></div>`, url.QueryEscape(feed.URL))
 		}
-		feed.StartTickedUpdate()
-		allFeeds.Feeds = append(allFeeds.Feeds, feed)
-
-		fmt.Fprintf(w, `<div id="items" hx-get="/items?url=%s" hx-trigger="load" hx-target="#items"></div>`, url.QueryEscape(feed.URL))
 	}
 }
-*/
