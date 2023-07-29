@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"strings"
 )
 
 func index(w http.ResponseWriter, req *http.Request) {
@@ -130,6 +131,21 @@ func crudfeed(w http.ResponseWriter, req *http.Request) {
 		name := req.FormValue("name")
 		category := req.FormValue("category")
 
+		scrapeURLs := req.FormValue("scrape.urls")
+		scrapeItem := req.FormValue("scrape.item")
+		scrapeTitle := req.FormValue("scrape.title")
+		scrapeLink := req.FormValue("scrape.link")
+
+		var scr *scrape
+		if scrapeURLs != "" || scrapeItem != "" || scrapeTitle != "" || scrapeLink != "" {
+			scr = &scrape{
+				URLs:  strings.Split(strings.TrimSpace(scrapeURLs), "\n"),
+				Item:  scrapeItem,
+				Title: scrapeTitle,
+				Link:  scrapeLink,
+			}
+		}
+
 		if id != "" { // edit or delete
 			del := req.FormValue("delete")
 			if del != "" {
@@ -144,6 +160,7 @@ func crudfeed(w http.ResponseWriter, req *http.Request) {
 					f.URL = feedurl
 					f.Name = name
 					f.Category = category
+					f.Scrape = scr
 					f.mu.Unlock()
 					feedlistCommon(w, f.Title())
 					fmt.Fprintf(w, `<div id="items" hx-get="/items?url=%s" hx-trigger="load" hx-target="#items"></div>`, url.QueryEscape(f.URL))
@@ -156,6 +173,7 @@ func crudfeed(w http.ResponseWriter, req *http.Request) {
 				URL:      feedurl,
 				Name:     name,
 				Category: category,
+				Scrape:   scr,
 			}
 			allFeeds.addFeed(feed)
 
