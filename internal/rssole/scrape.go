@@ -25,6 +25,9 @@ func (conf *scrape) GeneratePseudoRssFeed() (string, error) {
 `
 
 	for _, url := range conf.URLs {
+		if url == "" {
+			continue
+		}
 		resp, err := http.Get(url)
 		if err != nil {
 			return "", fmt.Errorf("get %s %w", url, err)
