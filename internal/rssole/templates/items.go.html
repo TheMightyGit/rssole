@@ -49,6 +49,11 @@
 
       <div id="collapse{{$idx}}" class="accordion-collapse collapse" data-bs-parent="#itemsAccordion">
         <div class="accordion-body m-0 p-2">
+          <div class="w-100">
+            <a href="{{.Link}}" target="_new">link</a>
+            <small>{{.PublishedParsed}}</small>
+          </div>
+          <hr class="w-100" />
           <div hx-get="/item?id={{$item.ID}}&url={{$.URL | urlquery}}"
                hx-swap="outerHTML"
                hx-trigger="intersect once"
