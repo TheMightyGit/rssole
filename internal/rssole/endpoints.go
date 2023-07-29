@@ -145,8 +145,8 @@ func crudfeed(w http.ResponseWriter, req *http.Request) {
 					f.Name = name
 					f.Category = category
 					f.mu.Unlock()
-					fmt.Fprint(w, `Updated.`)
 					feedlistCommon(w, f.Title())
+					fmt.Fprintf(w, `<div id="items" hx-get="/items?url=%s" hx-trigger="load" hx-target="#items"></div>`, url.QueryEscape(f.URL))
 				} else {
 					fmt.Fprint(w, `Not found.`)
 				}

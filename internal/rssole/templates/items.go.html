@@ -8,17 +8,7 @@
         <span class="lead">{{.Title}}</span>
         {{end}}
       </div>
-      <div class="col col-sm-4 text-end">
-        <button
-          hx-get="/crudfeed?feed={{.ID}}"
-          hx-target="#items"
-          hx-swap="outerHTML"
-          class="btn btn-primary p-1">
-          <small>
-          <i class="bi-plus-square-dotted"></i>
-          Edit
-          </small>
-        </button>
+      <div class="col col-sm-4 d-flex flex-row-reverse">
         <form hx-post="/items?url={{.URL | urlquery}}" hx-target="#items">
         {{range $idx, $item := .Items}}
           {{if $item.IsUnread}}
@@ -32,7 +22,16 @@
             class="btn btn-primary p-1"><small>
               <i class="bi-check2-square"></i>
               Mark All Read</small></button>
-        </form>
+        </form>&nbsp;<button
+          hx-get="/crudfeed?feed={{.ID}}"
+          hx-target="#items"
+          hx-swap="outerHTML"
+          class="btn btn-warning p-1">
+          <small>
+          <i class="bi-pencil-fill"></i>
+          Edit
+          </small>
+        </button>
       </div>
     </div>
   </div>
