@@ -1,30 +1,86 @@
 {
   "config": {
     "listen": "0.0.0.0:8090",
-    "update_seconds": 300
+    "update_seconds": 900
   },
   "feeds": [
-    {"url":"https://github.com/TheMightyGit/rssole/releases.atom", "category":"Github Releases"},
-    {"url":"https://github.com/hajimehoshi/ebiten/releases.atom", "category":"Github Releases"},
-    {"url":"https://news.ycombinator.com/rss", "category":"Nerd"},
-    {"url":"https://xkcd.com/rss.xml", "category":"Nerd"},
-    {"url":"http://feeds.bbci.co.uk/news/rss.xml", "category":"General News"},
-    {"url":"https://www.rockpapershotgun.com/feed", "category":"Games"},
-    {"url":"https://gamedev.stackexchange.com/feeds", "category":"GameDev"},
-    {"url":"https://gamedev.net/articles/feed", "category":"GameDev"},
-    {"url":"https://www.gamesindustry.biz/feed/news", "category":"GameDev"},
-    {"url":"https://www.phoronix.com/rss.php", "category":"Nerd"},
-    {"url":"https://mas.to/@curiousordinary.rss", "category":"Mastodon"},
-    {"url":"https://mstdn.social/@TheMightyGit.rss", "category":"Mastodon"},
-    {"url":"https://rss.slashdot.org/Slashdot/slashdotMain", "category":"Nerd"},
-    {"url":"https://www.theregister.com/headlines.atom", "category":"Nerd"},
-    {"url":"https://go.dev/blog/feed.atom?format=xml", "category":"Golang"},
-    {"url":"https://godotengine.org/rss.xml", "category":"GameDev"},
-    {"url":"https://feeds.feedburner.com/TheDailyWtf", "category":"Funny"},
-    {"url":"https://store.steampowered.com/feeds/news/app/1675200/", "name":"Steam Deck News Hub", "category":"Games"},
     {
-      "url":"https://www.pcgamer.com/uk/news/", "category":"Games",
-      "name":"PCGamer News",
+      "url": "https://github.com/TheMightyGit/rssole/releases.atom",
+      "category": "Github Releases"
+    },
+    {
+      "url": "https://github.com/hajimehoshi/ebiten/releases.atom",
+      "category": "Github Releases"
+    },
+    {
+      "url": "https://news.ycombinator.com/rss",
+      "category": "Nerd"
+    },
+    {
+      "url": "https://xkcd.com/rss.xml",
+      "category": "Nerd"
+    },
+    {
+      "url": "http://feeds.bbci.co.uk/news/rss.xml",
+      "category": "General News"
+    },
+    {
+      "url": "https://www.rockpapershotgun.com/feed",
+      "category": "Games"
+    },
+    {
+      "url": "https://gamedev.stackexchange.com/feeds",
+      "category": "GameDev"
+    },
+    {
+      "url": "https://gamedev.net/articles/feed",
+      "category": "GameDev"
+    },
+    {
+      "url": "https://www.gamesindustry.biz/feed/news",
+      "category": "GameDev"
+    },
+    {
+      "url": "https://www.phoronix.com/rss.php",
+      "category": "Nerd"
+    },
+    {
+      "url": "https://mas.to/@curiousordinary.rss",
+      "category": "Mastodon"
+    },
+    {
+      "url": "https://mstdn.social/@TheMightyGit.rss",
+      "category": "Mastodon"
+    },
+    {
+      "url": "https://rss.slashdot.org/Slashdot/slashdotMain",
+      "category": "Nerd"
+    },
+    {
+      "url": "https://www.theregister.com/headlines.atom",
+      "category": "Nerd"
+    },
+    {
+      "url": "https://go.dev/blog/feed.atom?format=xml",
+      "category": "Golang"
+    },
+    {
+      "url": "https://godotengine.org/rss.xml",
+      "category": "GameDev"
+    },
+    {
+      "url": "https://feeds.feedburner.com/TheDailyWtf",
+      "category": "Funny"
+    },
+    {
+      "url": "https://store.steampowered.com/feeds/news/app/1675200/",
+      "name": "Steam Deck News Hub",
+      "category": "Games"
+    },
+    {
+      "url": "https://www.pcgamer.com/uk/news/",
+      "name": "PCGamer News",
+      "category": "Games",
       "scrape": {
         "urls": [
           "https://www.pcgamer.com/uk/news/",
@@ -37,8 +93,9 @@
       }
     },
     {
-      "url":"https://www.pcgamer.com/uk/reviews/", "category":"Games",
-      "name":"PCGamer Reviews",
+      "url": "https://www.pcgamer.com/uk/reviews/",
+      "name": "PCGamer Reviews",
+      "category": "Games",
       "scrape": {
         "urls": [
           "https://www.pcgamer.com/uk/reviews/",
@@ -49,6 +106,10 @@
         "title": ".article-name",
         "link": ".article-link"
       }
+    },
+    {
+      "url": "https://www.iflscience.com/rss/ifls-latest-rss.xml",
+      "category": "Nerd"
     }
   ]
 }
