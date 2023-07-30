@@ -23,6 +23,14 @@ didn't strike me as that dissimilar from the role of an RSS reader.
 Check out the [Releases](https://github.com/TheMightyGit/rssole/releases/) section in github, there should be a good selection of pre-built binaries
 for various platforms.
 
+## Installing via Go
+
+You can install the binary with go install:
+
+```console
+$ go install github.com/TheMightyGit/rssole/cmd/rssole@latest
+```
+
 ## Building
 
 To build for your local architecture/OS...
@@ -42,7 +50,8 @@ $ GOOS=windows GOARCH=amd64 go build ./cmd/...
 $ GOOS=windows GOARCH=arm64 go build ./cmd/...
 ```
 
-...but I've only tested `darwin/amd64` and `linux/amd64`.
+...but I only regularly test on `darwin/amd64` and `linux/amd64`.
+I've seen it run on `windows/amd64`, but it's not something I try regularly.
 
 ### Smallest Binary
 
@@ -55,13 +64,32 @@ $ upx rssole
 
 ## Running
 
+### Command Line
+
+If you built locally then it should be in the current directory:
+
 ```console
 $ ./rssole
 ```
 
+If you used `go install` it should be on your path already:
+
+```console
+$ rssole
+```
+
+### GUI
+
+Double click on the file, I guess.
+
+If your system has restrictions on which binaries it will run then try compiling locally instead of
+using the pre-built binaries.
+
+## Now read your feeds with your browser
+
 Now open your browser on `<hostname/ip>:8090` e.g. http://localhost:8090
 
-## Network
+## Network Options
 
 By default it binds to `0.0.0.0:8090`, so it will be available on all network adaptors
 on your host. You can change this in the `feeds.json` config file.
