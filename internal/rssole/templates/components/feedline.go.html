@@ -3,6 +3,14 @@
   &nbsp;
   <span class="text-truncate w-100">{{.Title}}</span>
   &nbsp;
-  <span class="text-secondary">{{if .Scrape}}<i class="bi-browser-chrome"></i>{{else}}<i class="bi-rss-fill"></i>{{end}}</span>
+  <span>
+    <div class="htmx-indicator spinner-border spinner-border-sm" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </span>
+  &nbsp;
+  <span class="text-secondary">
+    {{if .Scrape}}<i class="bi-browser-chrome"></i>{{else}}<i class="bi-rss-fill"></i>{{end}}
+  </span>
   <!-- span class="text-secondary"><i class="bi-pencil-square"></i></span -->
 {{end}}

@@ -7,9 +7,14 @@
         {{else}}
         <span class="lead">{{.Title}}</span>
         {{end}}
+        <span id="feedspinner" class="htmx-indicator spinner-border spinner-border-sm" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </span>
       </div>
       <div class="col col-sm-4 d-flex flex-row-reverse">
-        <form hx-post="/items?url={{.URL | urlquery}}" hx-target="#items">
+        <form hx-post="/items?url={{.URL | urlquery}}"
+              hx-target="#items"
+              hx-indicator="#feedspinner">
         {{range $idx, $item := .Items}}
           {{if $item.IsUnread}}
           <input type="hidden" name="read" value="{{$item.Link}}">
@@ -21,11 +26,13 @@
             hx-swap="outerHTML"
             class="h-100 btn btn-primary p-1 text-nowrap"><small>
               <i class="bi-check2-square"></i>
-              Mark All Read</small></button>
+              Mark All Read</small>
+          </button>
         </form>&nbsp;<button
           hx-get="/crudfeed?feed={{.ID}}"
           hx-target="#items"
           hx-swap="outerHTML"
+          hx-indicator="#feedspinner"
           class="h-100 btn btn-warning p-1 text-nowrap">
           <small>
           <i class="bi-pencil-fill"></i>
