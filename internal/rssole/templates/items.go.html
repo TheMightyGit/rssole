@@ -23,7 +23,7 @@
           <button
             type="submit"
             hx-target="#items"
-            hx-swap="outerHTML"
+            hx-swap="innerHTML"
             class="h-100 btn btn-primary p-1 text-nowrap"><small>
               <i class="bi-check2-square"></i>
               Mark All Read</small>
@@ -31,7 +31,7 @@
         </form>&nbsp;<button
           hx-get="/crudfeed?feed={{.ID}}"
           hx-target="#items"
-          hx-swap="outerHTML"
+          hx-swap="innerHTML"
           hx-indicator="#feedspinner"
           class="h-100 btn btn-warning p-1 text-nowrap">
           <small>
