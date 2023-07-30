@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"testing"
+	"time"
 )
 
 /* TODO:
@@ -170,5 +171,51 @@ func TestUpdate_InvalidScrape(t *testing.T) {
 
 	if feed.feed != nil {
 		t.Fatal("expected feed to be nil")
+	}
+}
+
+func TestStartTickedUpdate(t *testing.T) {
+	defer feedSetUpTearDown(t)(t)
+
+	updateCount := 0
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		updateCount++
+		fmt.Fprintln(w, `<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0">
+<channel>
+  <title>Feed Title</title>
+  <link>Feed Link</link>
+  <description>This is a test</description>
+  <item>
+    <title>Title 1</title>
+    <link>http://title1.com/</link>
+    <description>Title 1</description>
+  </item>
+</channel>
+</rss>`)
+	}))
+	defer ts.Close()
+
+	feed := &feed{
+		URL: ts.URL,
+	}
+
+	feed.StartTickedUpdate(10 * time.Millisecond)
+
+	time.Sleep(45 * time.Millisecond)
+
+	if feed.ticker == nil {
+		t.Fatal("expected ticker not to be nil")
+	}
+
+	defer feed.ticker.Stop()
+
+	if updateCount == 4 {
+		t.Fatal("expected 4 updates to have happened")
+	}
+
+	if feed.feed == nil {
+		t.Fatal("expected feed not to be nil")
 	}
 }
