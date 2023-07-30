@@ -2,7 +2,7 @@
 
   <ul class="nav nav-tabs" role="tablist">
     <li class="nav-item">
-      <a data-bs-toggle="tab" data-bs-target="#rss" class="nav-link {{if .}}{{if .Scrape}}{{else}}active{{end}}{{end}}">RSS</a>
+      <a data-bs-toggle="tab" data-bs-target="#rss" class="nav-link {{if .}}{{if .Scrape}}{{else}}active{{end}}{{else}}active{{end}}">RSS</a>
     </li>
     <li class="nav-item">
       <a data-bs-toggle="tab" data-bs-target="#scrape" class="nav-link {{if .}}{{if .Scrape}}active{{end}}{{end}}">Scrape Website</a>
@@ -56,20 +56,20 @@
       </div>
       <div>
         <label for="formScrapeUrls" class="text-primary"><b>Scrape Pages</b></label>
-        <textarea class="form-control" id="formScrapeUrls" name="scrape.urls" rows="5">{{if .}}{{range .Scrape.URLs}}{{.}}
-{{end}}{{end}}</textarea>
+        <textarea class="form-control" id="formScrapeUrls" name="scrape.urls" rows="5">{{if .}}{{if .Scrape}}{{range .Scrape.URLs}}{{.}}
+{{end}}{{end}}{{end}}</textarea>
       </div>
       <div>
         <label for="formScrapeItem" class="text-primary"><b>Scrape Item (css selector)</b></label>
-        <input type="text" class="form-control" id="formScrapeItem" name="scrape.item" value="{{if .}}{{.Scrape.Item}}{{end}}">
+        <input type="text" class="form-control" id="formScrapeItem" name="scrape.item" value="{{if .}}{{if .Scrape}}{{.Scrape.Item}}{{end}}{{end}}">
       </div>
       <div>
         <label for="formScrapeTitle" class="text-primary"><b>Scrape Title (css selector)</b></label>
-        <input type="text" class="form-control" id="formScrapeTitle" name="scrape.title" value="{{if .}}{{.Scrape.Title}}{{end}}">
+        <input type="text" class="form-control" id="formScrapeTitle" name="scrape.title" value="{{if .}}{{if .Scrape}}{{.Scrape.Title}}{{end}}{{end}}">
       </div>
       <div>
         <label for="formScrapeLink" class="text-primary"><b>Scrape Link (css selector)</b></label>
-        <input type="text" class="form-control" id="formScrapeLink" name="scrape.link" value="{{if .}}{{.Scrape.Link}}{{end}}">
+        <input type="text" class="form-control" id="formScrapeLink" name="scrape.link" value="{{if .}}{{if .Scrape}}{{.Scrape.Link}}{{end}}{{end}}">
       </div>
       <div class="mt-3">
         <button

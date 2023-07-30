@@ -163,7 +163,7 @@ func crudfeed(w http.ResponseWriter, req *http.Request) {
 					f.Scrape = scr
 					f.mu.Unlock()
 					feedlistCommon(w, f.Title())
-					fmt.Fprintf(w, `<div id="items" hx-get="/items?url=%s" hx-trigger="load" hx-target="#items"></div>`, url.QueryEscape(f.URL))
+					fmt.Fprintf(w, `<div hx-get="/items?url=%s" hx-trigger="load" hx-target="#items"></div>`, url.QueryEscape(f.URL))
 				} else {
 					fmt.Fprint(w, `Not found.`)
 				}
@@ -177,7 +177,7 @@ func crudfeed(w http.ResponseWriter, req *http.Request) {
 			}
 			allFeeds.addFeed(feed)
 
-			fmt.Fprintf(w, `<div id="items" hx-get="/items?url=%s" hx-trigger="load" hx-target="#items"></div>`, url.QueryEscape(feed.URL))
+			fmt.Fprintf(w, `<div hx-get="/items?url=%s" hx-trigger="load" hx-target="#items"></div>`, url.QueryEscape(feed.URL))
 		}
 		// something may have changed, so save it.
 		if err := allFeeds.saveFeedsFile(); err != nil {
