@@ -35,10 +35,14 @@ func (conf *scrape) GeneratePseudoRssFeed() (string, error) {
 		}
 
 		if resp.StatusCode < 200 || resp.StatusCode > 299 {
+			resp.Body.Close()
+
 			return "", fmt.Errorf("get non-success %d %s %w", resp.StatusCode, url, err)
 		}
 
 		doc, err := html.Parse(resp.Body)
+		resp.Body.Close()
+
 		if err != nil {
 			return "", fmt.Errorf("parse %s %w", url, err)
 		}

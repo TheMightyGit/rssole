@@ -25,7 +25,7 @@ func getFeedsFileConfigSection(filename string) (rssole.ConfigSection, error) {
 
 	jsonFile, err := os.Open(filename)
 	if err != nil {
-		return cfgFile.Config, fmt.Errorf("error opening file: %v", err)
+		return cfgFile.Config, fmt.Errorf("error opening file: %w", err)
 	}
 	defer jsonFile.Close()
 
@@ -33,7 +33,7 @@ func getFeedsFileConfigSection(filename string) (rssole.ConfigSection, error) {
 
 	err = decoder.Decode(&cfgFile)
 	if err != nil {
-		return cfgFile.Config, fmt.Errorf("error unmarshalling JSON: %v", err)
+		return cfgFile.Config, fmt.Errorf("error unmarshalling JSON: %w", err)
 	}
 
 	return cfgFile.Config, nil
