@@ -64,7 +64,7 @@ func TestDescription_HtmlSanitised(t *testing.T) {
 `,
 		},
 	}
-	expectedHtml := `<html><head>
+	expectedHTML := `<html><head>
 
 
 </head><body>
@@ -75,7 +75,7 @@ func TestDescription_HtmlSanitised(t *testing.T) {
 
 	d := w.Description()
 
-	if d != expectedHtml {
-		t.Fatal("description not as expected. got", d, "expected:", expectedHtml)
+	if d != expectedHTML {
+		t.Fatal("description not as expected. got", d, "expected:", expectedHTML)
 	}
 }

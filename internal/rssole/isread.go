@@ -25,19 +25,24 @@ func (u *unreadLut) loadReadLut() {
 	} else {
 		err = json.Unmarshal(body, &u.lut)
 		if err != nil {
-			log.Fatalln("unmarshall readlut:", err)
+			log.Println("error unmarshall readlut:", err)
 		}
 	}
 }
 
+const (
+	minusSixtyDays  = -60 * time.Hour * 24 // 60 days ago
+	updateFrequency = 6 * time.Hour
+)
+
 func (u *unreadLut) startCleanupTicker() {
-	ago := -60 * time.Hour * 24 // 60 days ago
+	ago := minusSixtyDays
 	before := time.Now().Add(ago)
 	readLut.removeOldEntries(before)
 	readLut.persistReadLut()
 
 	go func() {
-		ticker := time.NewTicker(6 * time.Hour)
+		ticker := time.NewTicker(updateFrequency)
 		for range ticker.C {
 			before = time.Now().Add(ago)
 			readLut.removeOldEntries(before)
@@ -51,6 +56,7 @@ func (u *unreadLut) removeOldEntries(before time.Time) {
 	defer u.mu.Unlock()
 
 	log.Println("removing readcache entries before", before)
+
 	for url, when := range u.lut {
 		if when.Before(before) {
 			log.Println("removing old from readcache", url, when)
@@ -64,6 +70,7 @@ func (u *unreadLut) isUnread(url string) bool {
 	defer u.mu.RUnlock()
 
 	_, found := u.lut[url]
+
 	return !found
 }
 
@@ -78,16 +85,21 @@ func (u *unreadLut) markRead(url string) {
 	u.lut[url] = time.Now()
 }
 
+const lutFilePerms = 0o644
+
 func (u *unreadLut) persistReadLut() {
 	u.mu.Lock()
 	defer u.mu.Unlock()
 
 	jsonString, err := json.Marshal(u.lut)
 	if err != nil {
-		log.Fatalln("marshalling readlut:", err)
+		log.Println("error marshalling readlut:", err)
+
+		return
 	}
-	err = os.WriteFile(u.Filename, jsonString, 0644)
+
+	err = os.WriteFile(u.Filename, jsonString, lutFilePerms)
 	if err != nil {
-		log.Fatalln("writefile", u.Filename, ":", err)
+		log.Println("error writefile", u.Filename, ":", err)
 	}
 }

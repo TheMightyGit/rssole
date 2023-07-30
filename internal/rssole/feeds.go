@@ -33,18 +33,20 @@ func (f *feeds) addFeed(feedToAdd *feed) {
 	allFeeds.Feeds = append(allFeeds.Feeds, feedToAdd)
 }
 
-func (f *feeds) delFeed(feedId string) {
+func (f *feeds) delFeed(feedID string) {
 	allFeeds.mu.Lock()
 	defer allFeeds.mu.Unlock()
 
 	newFeeds := []*feed{}
+
 	for _, f := range f.Feeds {
-		if f.ID() != feedId {
+		if f.ID() != feedID {
 			newFeeds = append(newFeeds, f)
 		} else {
 			log.Println("Removed feed", f.URL)
 		}
 	}
+
 	f.Feeds = newFeeds
 }
 
@@ -57,6 +59,7 @@ func (f *feeds) getFeedByID(id string) *feed {
 			return f
 		}
 	}
+
 	return nil
 }
 
@@ -68,15 +71,17 @@ func (f *feeds) readFeedsFile(filename string) error {
 
 	jsonFile, err := os.Open(f.filename)
 	if err != nil {
-		return fmt.Errorf("Error opening file: %w", err)
+		return fmt.Errorf("error opening file: %w", err)
 	}
 	defer jsonFile.Close()
 
 	d := json.NewDecoder(jsonFile)
+
 	err = d.Decode(f)
 	if err != nil {
-		return fmt.Errorf("Error unmarshalling JSON: %w", err)
+		return fmt.Errorf("error unmarshalling JSON: %w", err)
 	}
+
 	return nil
 }
 
@@ -86,16 +91,18 @@ func (f *feeds) saveFeedsFile() error {
 
 	jsonFile, err := os.Create(f.filename)
 	if err != nil {
-		return fmt.Errorf("Error opening file: %w", err)
+		return fmt.Errorf("error opening file: %w", err)
 	}
 	defer jsonFile.Close()
 
 	e := json.NewEncoder(jsonFile)
 	e.SetIndent("", "  ")
+
 	err = e.Encode(allFeeds)
 	if err != nil {
-		return fmt.Errorf("Error marshalling JSON: %w", err)
+		return fmt.Errorf("error marshalling JSON: %w", err)
 	}
+
 	return nil
 }
 

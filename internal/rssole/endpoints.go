@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func index(w http.ResponseWriter, req *http.Request) {
+func index(w http.ResponseWriter, _ *http.Request) {
 	if err := templates["base.go.html"].Execute(w, nil); err != nil {
 		log.Println(err)
 	}
@@ -21,12 +21,15 @@ func feedlistCommon(w http.ResponseWriter, selected string) {
 	for _, f := range allFeeds.Feeds {
 		f.mu.RLock()
 	}
+
 	defer func() {
 		for _, f := range allFeeds.Feeds {
 			f.mu.RUnlock()
 		}
 	}()
+
 	allFeeds.Selected = selected
+
 	if err := templates["feedlist.go.html"].Execute(w, allFeeds); err != nil {
 		log.Println(err)
 	}
@@ -43,9 +46,10 @@ func items(w http.ResponseWriter, req *http.Request) {
 	allFeeds.mu.RLock()
 	defer allFeeds.mu.RUnlock()
 
-	if req.Method == "POST" {
+	if req.Method == http.MethodPost {
 		_ = req.ParseForm()
 		markRead := map[string]bool{}
+
 		for k, v := range req.Form {
 			if k == "read" {
 				for _, v2 := range v {
@@ -99,8 +103,10 @@ func item(w http.ResponseWriter, req *http.Request) {
 					if err := templates["item.go.html"].Execute(w, item); err != nil {
 						log.Println(err)
 					}
+
 					readLut.markRead(item.Link)
 					readLut.persistReadLut()
+
 					break
 				}
 			}
@@ -111,16 +117,18 @@ func item(w http.ResponseWriter, req *http.Request) {
 }
 
 func crudfeed(w http.ResponseWriter, req *http.Request) {
-	if req.Method == "GET" {
+	if req.Method == http.MethodGet {
 		var f *feed
+
 		feedID := req.URL.Query().Get("feed")
 		if feedID != "" {
 			f = allFeeds.getFeedByID(feedID)
 		}
+
 		if err := templates["crudfeed.go.html"].Execute(w, f); err != nil {
 			log.Println(err)
 		}
-	} else if req.Method == "POST" {
+	} else if req.Method == http.MethodPost {
 		err := req.ParseForm()
 		if err != nil {
 			log.Println(err)

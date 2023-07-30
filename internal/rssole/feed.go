@@ -28,6 +28,7 @@ func (f *feed) Link() string {
 	if f.feed != nil {
 		return f.feed.Link
 	}
+
 	return ""
 }
 
@@ -35,9 +36,11 @@ func (f *feed) Title() string {
 	if f.Name != "" {
 		return f.Name
 	}
+
 	if f.feed != nil {
 		return f.feed.Title
 	}
+
 	return f.URL
 }
 
@@ -45,12 +48,15 @@ func (f *feed) UnreadItemCount() int {
 	if f.feed == nil {
 		return 0
 	}
+
 	cnt := 0
+
 	for _, item := range f.Items() {
 		if item.IsUnread {
 			cnt++
 		}
 	}
+
 	return cnt
 }
 
@@ -59,16 +65,19 @@ func (f *feed) Items() []*wrappedItem {
 }
 
 func (f *feed) Update() error {
-	var err error
+	var (
+		err  error
+		feed *gofeed.Feed
+	)
 
 	fp := gofeed.NewParser()
-	var feed *gofeed.Feed
 
 	if f.Scrape != nil {
 		pseudoRss, err := f.Scrape.GeneratePseudoRssFeed()
 		if err != nil {
 			return fmt.Errorf("rss GeneratePseudoRssFeed %s %w", f.URL, err)
 		}
+
 		feed, err = fp.ParseString(pseudoRss)
 		if err != nil {
 			return fmt.Errorf("rss parsestring %s %w", f.URL, err)
@@ -83,6 +92,7 @@ func (f *feed) Update() error {
 	f.mu.Lock()
 	f.feed = feed
 	f.wrappedItems = make([]*wrappedItem, len(f.feed.Items))
+
 	for idx, item := range f.feed.Items {
 		f.wrappedItems[idx] = &wrappedItem{
 			IsUnread: readLut.isUnread(item.Link),
@@ -113,6 +123,7 @@ func (f *feed) Update() error {
 		if iDate != nil && jDate != nil {
 			return jDate.Before(*iDate)
 		}
+
 		return false // retain current order
 	})
 
@@ -127,12 +138,15 @@ func (f *feed) StartTickedUpdate(updateTime time.Duration) {
 	if f.ticker != nil {
 		return // already running
 	}
+
 	go func() {
 		if err := f.Update(); err != nil {
 			log.Println("error during update of", f.URL, err)
 		}
+
+		log.Println("Starting update ticker of", updateTime, "for", f.URL)
+
 		f.ticker = time.NewTicker(updateTime)
-		log.Println("Started update ticker of", updateTime, "for", f.URL)
 		for range f.ticker.C {
 			if err := f.Update(); err != nil {
 				log.Println("error during update of", f.URL, err)
@@ -151,5 +165,6 @@ func (f *feed) StopTickedUpdate() {
 
 func (f *feed) ID() string {
 	hash := md5.Sum([]byte(f.URL))
+
 	return hex.EncodeToString(hash[:])
 }

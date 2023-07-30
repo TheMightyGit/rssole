@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"flag"
+	"fmt"
 	"log"
 	"os"
 	"time"
@@ -19,38 +20,46 @@ type configFile struct {
 	Config rssole.ConfigSection `json:"config"`
 }
 
-func getFeedsFileConfigSection(filename string) rssole.ConfigSection {
+func getFeedsFileConfigSection(filename string) (rssole.ConfigSection, error) {
+	var cfgFile configFile
+
 	jsonFile, err := os.Open(filename)
 	if err != nil {
-		log.Fatalf("Error opening file: %v", err)
+		return cfgFile.Config, fmt.Errorf("error opening file: %v", err)
 	}
 	defer jsonFile.Close()
 
-	var c configFile
-	d := json.NewDecoder(jsonFile)
-	err = d.Decode(&c)
+	decoder := json.NewDecoder(jsonFile)
+
+	err = decoder.Decode(&cfgFile)
 	if err != nil {
-		log.Fatalf("Error unmarshalling JSON: %v", err)
+		return cfgFile.Config, fmt.Errorf("error unmarshalling JSON: %v", err)
 	}
-	return c.Config
+
+	return cfgFile.Config, nil
 }
 
 func main() {
 	var configFilename, configReadCacheFilename string
+
 	flag.StringVar(&configFilename, "c", "feeds.json", "config filename")
 	flag.StringVar(&configReadCacheFilename, "r", "readcache.json", "readcache location")
 	flag.Parse()
 
-	cfg := getFeedsFileConfigSection(configFilename)
+	cfg, err := getFeedsFileConfigSection(configFilename)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	if cfg.Listen == "" {
 		cfg.Listen = defaultListenAddress
 	}
+
 	if cfg.UpdateSeconds == 0 {
 		cfg.UpdateSeconds = defaultUpdateTimeSeconds
 	}
 
-	err := rssole.Start(configFilename, configReadCacheFilename, cfg.Listen, time.Duration(cfg.UpdateSeconds)*time.Second)
+	err = rssole.Start(configFilename, configReadCacheFilename, cfg.Listen, time.Duration(cfg.UpdateSeconds)*time.Second)
 	if err != nil {
 		log.Fatal(err)
 	}

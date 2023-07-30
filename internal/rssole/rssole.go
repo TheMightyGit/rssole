@@ -29,6 +29,7 @@ func loadTemplates() error {
 	if templates == nil {
 		templates = make(map[string]*template.Template)
 	}
+
 	tmplFiles, err := fs.ReadDir(files, templatesDir)
 	if err != nil {
 		return fmt.Errorf("loadTemplates readdir - %w", err)
@@ -46,10 +47,11 @@ func loadTemplates() error {
 
 		templates[tmpl.Name()] = pt
 	}
+
 	return nil
 }
 
-func Start(configFilename, configReadCacheFilename, listenAddress string, updateTimeSeconds time.Duration) error {
+func Start(configFilename, configReadCacheFilename, listenAddress string, updateTime time.Duration) error {
 	err := loadTemplates()
 	if err != nil {
 		return err
@@ -62,7 +64,8 @@ func Start(configFilename, configReadCacheFilename, listenAddress string, update
 	if err := allFeeds.readFeedsFile(configFilename); err != nil {
 		return err
 	}
-	allFeeds.UpdateTime = updateTimeSeconds
+
+	allFeeds.UpdateTime = updateTime
 	allFeeds.BeginFeedUpdates()
 
 	http.HandleFunc("/", index)
@@ -72,8 +75,10 @@ func Start(configFilename, configReadCacheFilename, listenAddress string, update
 	http.HandleFunc("/crudfeed", crudfeed)
 
 	log.Printf("Listening on %s\n", listenAddress)
+
 	if err := http.ListenAndServe(listenAddress, nil); err != nil {
-		return err
+		return fmt.Errorf("error during ListenAndServe - %w", err)
 	}
+
 	return nil
 }
