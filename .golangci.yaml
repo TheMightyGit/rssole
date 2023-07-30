@@ -11,3 +11,5 @@ linters:
     - gomnd
     - wsl
     - revive
+    - bodyclose
+    - errorlint
