@@ -15,7 +15,7 @@ I really miss Google Reader, and recently noticed I'd gone back to an old habbit
 
 So I made my own non-SaaS ode to Google Reader so that I can triage my incoming information in one place with one interface in a way I like.
 
-The name is a pun on 'rissole'. Firstly it contains the letters R S and S and secondly because "a compressed mixture of meat and spices, coated in breadcrumbs and fried"
+The name is a pun on 'rissole'. Firstly it contains the letters R S and S and secondly because "*a compressed mixture of meat and spices, coated in breadcrumbs and fried*"
 didn't strike me as that dissimilar from the role of an RSS reader.
 
 ## Pre-Built Binaries
