@@ -26,16 +26,16 @@ type ConfigSection struct {
 }
 
 func (f *feeds) addFeed(feedToAdd *feed) {
-	allFeeds.mu.Lock()
-	defer allFeeds.mu.Unlock()
+	f.mu.Lock()
+	defer f.mu.Unlock()
 
 	feedToAdd.StartTickedUpdate(f.UpdateTime)
-	allFeeds.Feeds = append(allFeeds.Feeds, feedToAdd)
+	f.Feeds = append(f.Feeds, feedToAdd)
 }
 
 func (f *feeds) delFeed(feedID string) {
-	allFeeds.mu.Lock()
-	defer allFeeds.mu.Unlock()
+	f.mu.Lock()
+	defer f.mu.Unlock()
 
 	newFeeds := []*feed{}
 
@@ -51,8 +51,8 @@ func (f *feeds) delFeed(feedID string) {
 }
 
 func (f *feeds) getFeedByID(id string) *feed {
-	allFeeds.mu.Lock()
-	defer allFeeds.mu.Unlock()
+	f.mu.Lock()
+	defer f.mu.Unlock()
 
 	for _, f := range f.Feeds {
 		if f.ID() == id {
@@ -64,8 +64,8 @@ func (f *feeds) getFeedByID(id string) *feed {
 }
 
 func (f *feeds) readFeedsFile(filename string) error {
-	allFeeds.mu.Lock()
-	defer allFeeds.mu.Unlock()
+	f.mu.Lock()
+	defer f.mu.Unlock()
 
 	f.filename = filename
 
@@ -86,8 +86,8 @@ func (f *feeds) readFeedsFile(filename string) error {
 }
 
 func (f *feeds) saveFeedsFile() error {
-	allFeeds.mu.Lock()
-	defer allFeeds.mu.Unlock()
+	f.mu.Lock()
+	defer f.mu.Unlock()
 
 	jsonFile, err := os.Create(f.filename)
 	if err != nil {
@@ -98,7 +98,7 @@ func (f *feeds) saveFeedsFile() error {
 	e := json.NewEncoder(jsonFile)
 	e.SetIndent("", "  ")
 
-	err = e.Encode(allFeeds)
+	err = e.Encode(f)
 	if err != nil {
 		return fmt.Errorf("error marshalling JSON: %w", err)
 	}
