@@ -46,11 +46,11 @@ func (w *wrappedItem) Images() []string {
 		if content, found := media["content"]; found {
 			for _, v := range content {
 				if v.Attrs["medium"] == "image" {
-					imageUrl := v.Attrs["url"]
-					if !w.isDescriptionImage(imageUrl) {
+					imageURL := v.Attrs["url"]
+					if !w.isDescriptionImage(imageURL) {
 						// fmt.Println(w.Description())
 						// fmt.Printf("%v = %+v\n", k, imageUrl)
-						images = append(images, imageUrl)
+						images = append(images, imageURL)
 					}
 				}
 			}
@@ -58,6 +58,7 @@ func (w *wrappedItem) Images() []string {
 	}
 
 	w.images = &images
+
 	return *w.images
 }
 
@@ -66,12 +67,14 @@ func (w *wrappedItem) isDescriptionImage(src string) bool {
 		// force lazy load if it hasn't already
 		_ = w.Description()
 	}
+
 	for _, v := range *w.descriptionImagesForDedupe {
 		// fmt.Println(v, "==", src)
 		if v == src {
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -85,6 +88,7 @@ func (w *wrappedItem) Description() string {
 	if err != nil {
 		// ...
 		log.Println(err)
+
 		return w.Item.Description
 	}
 
@@ -93,14 +97,16 @@ func (w *wrappedItem) Description() string {
 
 	var f func(*html.Node)
 	f = func(n *html.Node) {
-		//fmt.Println(n)
+		// fmt.Println(n)
 		if n.Type == html.ElementNode {
-			//fmt.Println(n.Data)
+			// fmt.Println(n.Data)
 			if n.Data == "script" || n.Data == "style" || n.Data == "link" || n.Data == "meta" || n.Data == "iframe" {
 				// fmt.Println("removing", n.Data, "tag")
 				toDelete = append(toDelete, n)
+
 				return
 			}
+
 			if n.Data == "a" {
 				// fmt.Println("making", n.Data, "tag target new tab")
 				n.Attr = append(n.Attr, html.Attribute{
@@ -112,10 +118,12 @@ func (w *wrappedItem) Description() string {
 				for i := range n.Attr {
 					if n.Attr[i].Key == "href" && n.Attr[i].Val[0] == '#' {
 						n.Attr[i].Key = "xxxhref" // easier than removing the attr
+
 						break
 					}
 				}
 			}
+
 			if n.Data == "img" || n.Data == "svg" {
 				// fmt.Println("making", n.Data, "tag style max-width 60%")
 				n.Attr = append(n.Attr, html.Attribute{
@@ -132,6 +140,7 @@ func (w *wrappedItem) Description() string {
 				}
 			}
 		}
+
 		for c := n.FirstChild; c != nil; c = c.NextSibling {
 			f(c)
 		}
@@ -144,11 +153,13 @@ func (w *wrappedItem) Description() string {
 
 	renderBuf := bytes.NewBufferString("")
 	_ = html.Render(renderBuf, doc)
-
 	desc := renderBuf.String()
 	w.description = &desc
+
 	return *w.description
 }
+
+const maxDescriptionLength = 200
 
 func (w *wrappedItem) Summary() string {
 	if w.summary != nil {
@@ -156,8 +167,8 @@ func (w *wrappedItem) Summary() string {
 	}
 
 	plainDesc := html2text.HTML2Text(w.Item.Description)
-	if len(plainDesc) > 200 {
-		plainDesc = plainDesc[:200]
+	if len(plainDesc) > maxDescriptionLength {
+		plainDesc = plainDesc[:maxDescriptionLength]
 	}
 
 	// if summary is identical to title return nothing
@@ -177,5 +188,6 @@ func (w *wrappedItem) Summary() string {
 
 func (w *wrappedItem) ID() string {
 	hash := md5.Sum([]byte(w.Link))
+
 	return hex.EncodeToString(hash[:])
 }

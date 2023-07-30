@@ -17,7 +17,7 @@ Sorting
 
 */
 
-func feedSetUpTearDown(t *testing.T) func(t *testing.T) {
+func feedSetUpTearDown(_ *testing.T) func(t *testing.T) {
 	// We don't want to make a mess of the local fs
 	// so clobber the readcache with one that uses a tmp file.
 	readCacheDir, err := os.MkdirTemp("", "Test_Feed")
@@ -94,7 +94,6 @@ func TestUpdate_ValidRssFeed(t *testing.T) {
 	}
 
 	err := feed.Update()
-
 	if err != nil {
 		t.Fatal("unexpected error for a valid", err)
 	}
@@ -135,7 +134,6 @@ func TestUpdate_ValidScrape(t *testing.T) {
 	}
 
 	err := feed.Update()
-
 	if err != nil {
 		t.Fatal("unexpected error for a valid", err)
 	}
@@ -147,7 +145,7 @@ func TestUpdate_ValidScrape(t *testing.T) {
 
 func TestUpdate_InvalidScrape(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(400)
+		w.WriteHeader(http.StatusBadRequest)
 	}))
 	defer ts.Close()
 

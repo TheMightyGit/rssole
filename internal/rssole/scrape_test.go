@@ -23,6 +23,7 @@ func TestScrape(t *testing.T) {
 </html>`)
 	}))
 	defer ts1.Close()
+
 	ts2 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintln(w, `<html>
 <body>
@@ -70,7 +71,6 @@ func TestScrape(t *testing.T) {
 	}
 
 	feedStr, err := conf.GeneratePseudoRssFeed()
-
 	if err != nil {
 		t.Fatal(feedStr, "error is not nil")
 	}

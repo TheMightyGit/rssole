@@ -6,14 +6,13 @@ import (
 	"testing"
 )
 
-var (
-	tempDir string
-)
+var tempDir string
 
-func feedsSetUpTearDown(t *testing.T) func(t *testing.T) {
+func feedsSetUpTearDown(_ *testing.T) func(t *testing.T) {
 	// We don't want to make a mess of the local fs
 	// so clobber the readcache with one that uses a tmp file.
 	var err error
+
 	tempDir, err = os.MkdirTemp("", "Test_Feeds")
 	if err != nil {
 		log.Fatal(err)
@@ -29,7 +28,9 @@ func TestReadFeedsFile_Success(t *testing.T) {
 
 	file, err := os.CreateTemp(tempDir, "*")
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
+
+		return
 	}
 
 	// make it valid json
@@ -49,7 +50,9 @@ func TestReadFeedsFile_BadJson(t *testing.T) {
 
 	file, err := os.CreateTemp(tempDir, "*")
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
+
+		return
 	}
 
 	_, _ = file.WriteString("NOT_VALID_JSON")
