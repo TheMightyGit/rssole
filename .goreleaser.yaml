@@ -18,7 +18,8 @@ brews:
   -
     repository:
       owner: TheMightyGit
-      name: rssole
+      name: homebrew-rssole
+      token: "{{ .Env.TAP_GITHUB_TOKEN }}"
     homepage: 'https://github.com/TheMightyGit/rssole/'
     description: 'An RSS Reader inspired by the late Google Reader.'
 
