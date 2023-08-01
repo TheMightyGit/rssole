@@ -7,10 +7,9 @@ builds:
     env:
       - CGO_ENABLED=0
     goos:
-      #- freebsd
       - linux
-      #- windows
-      #- darwin
+      - windows
+      - darwin
     ldflags:
       - -s -w
 
