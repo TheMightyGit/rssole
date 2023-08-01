@@ -31,6 +31,12 @@ You can install the binary with go install:
 $ go install github.com/TheMightyGit/rssole/cmd/rssole@latest
 ```
 
+## Installing via Brew
+
+```console
+$ brew install themightygit/rssole/rssole
+```
+
 ## Building
 
 To build for your local architecture/OS...
@@ -72,7 +78,7 @@ If you built locally then it should be in the current directory:
 $ ./rssole
 ```
 
-If you used `go install` it should be on your path already:
+If you used `go install` or brew then it should be on your path already:
 
 ```console
 $ rssole
