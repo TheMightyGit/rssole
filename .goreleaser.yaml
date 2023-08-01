@@ -32,6 +32,7 @@ archives:
 
 brews:
   -
+    license: "MIT"
     repository:
       owner: themightygit
       name: homebrew-rssole
@@ -40,7 +41,8 @@ brews:
     description: 'An RSS Reader inspired by the late Google Reader.'
 
 nfpms:
-  - maintainer: "the.mighty.git@gmail.com"
+  - license: "MIT"
+    maintainer: "the.mighty.git@gmail.com"
     homepage: "https://github.com/TheMightyGit/rssole"
     description: 'An RSS Reader inspired by the late Google Reader.'
     formats:
