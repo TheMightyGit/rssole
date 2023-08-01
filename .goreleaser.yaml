@@ -46,6 +46,7 @@ nfpms:
     formats:
       - rpm
       - deb
+      - apk
 
 checksum:
   name_template: 'checksums.txt'
