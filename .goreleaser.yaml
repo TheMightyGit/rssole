@@ -47,6 +47,7 @@ nfpms:
       - rpm
       - deb
       - apk
+      - archlinux
 
 checksum:
   name_template: 'checksums.txt'
