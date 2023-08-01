@@ -7,9 +7,25 @@ builds:
     env:
       - CGO_ENABLED=0
     goos:
+      - freebsd
       - linux
       - windows
       - darwin
+    goarch:
+      - amd64
+      - arm64
+      - arm
+      - '386'
+    ldflags:
+      - -s -w
+
+brews:
+  -
+    repository:
+      owner: TheMightyGit
+      name: homebrew-rssole
+    homepage: 'https://github.com/TheMightyGit/rssole/'
+    description: 'An RSS Reader inspired by the late Google Reader.'
 
 archives:
   - format: tar.gz
@@ -27,18 +43,16 @@ archives:
       format: zip
     files:
       - feeds.json
+
 checksum:
   name_template: 'checksums.txt'
+
 snapshot:
   name_template: "{{ incpatch .Version }}-next"
+
 changelog:
   sort: asc
   filters:
     exclude:
       - '^docs:'
       - '^test:'
-
-# The lines beneath this are called `modelines`. See `:help modeline`
-# Feel free to remove those if you don't want/use them.
-# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
-# vim: set ts=2 sw=2 tw=0 fo=cnqoj
