@@ -11,11 +11,6 @@ builds:
       - linux
       - windows
       - darwin
-    goarch:
-      - amd64
-      - arm64
-      - arm
-      - '386'
     ldflags:
       - -s -w
 
