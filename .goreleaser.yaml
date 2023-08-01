@@ -16,7 +16,7 @@ builds:
 brews:
   -
     repository:
-      owner: TheMightyGit
+      owner: themightygit
       name: homebrew-rssole
       token: "{{ .Env.TAP_GITHUB_TOKEN }}"
     homepage: 'https://github.com/TheMightyGit/rssole/'
