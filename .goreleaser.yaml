@@ -13,15 +13,6 @@ builds:
     ldflags:
       - -s -w
 
-brews:
-  -
-    repository:
-      owner: themightygit
-      name: homebrew-rssole
-      token: "{{ .Env.TAP_GITHUB_TOKEN }}"
-    homepage: 'https://github.com/TheMightyGit/rssole/'
-    description: 'An RSS Reader inspired by the late Google Reader.'
-
 archives:
   - format: tar.gz
     # this name template makes the OS and Arch compatible with the results of uname.
@@ -38,6 +29,23 @@ archives:
       format: zip
     files:
       - feeds.json
+
+brews:
+  -
+    repository:
+      owner: themightygit
+      name: homebrew-rssole
+      token: "{{ .Env.TAP_GITHUB_TOKEN }}"
+    homepage: 'https://github.com/TheMightyGit/rssole/'
+    description: 'An RSS Reader inspired by the late Google Reader.'
+
+nfpms:
+  - maintainer: "the.mighty.git@gmail.com"
+    homepage: "https://github.com/TheMightyGit/rssole"
+    description: 'An RSS Reader inspired by the late Google Reader.'
+    formats:
+      - rpm
+      - deb
 
 checksum:
   name_template: 'checksums.txt'
