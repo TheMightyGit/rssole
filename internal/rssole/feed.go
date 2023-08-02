@@ -85,6 +85,7 @@ func (f *feed) Update() error {
 		}
 
 		f.Logln("Parsing pseudo feed")
+
 		feed, err = fp.ParseString(pseudoRss)
 		if err != nil {
 			return fmt.Errorf("rss parsestring %s %w", f.URL, err)
@@ -162,6 +163,7 @@ func (f *feed) Logln(args ...any) {
 			strings.Split(f.RecentLogs.String(), "\n")[numLines-maxRecentLogLines:],
 			"\n",
 		)
+
 		f.RecentLogs.Reset()
 		f.RecentLogs.WriteString(cappedLines)
 	}
