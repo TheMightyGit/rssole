@@ -15,11 +15,11 @@ import (
 )
 
 type feed struct {
-	URL        string  `json:"url"`
-	Name       string  `json:"name,omitempty"`     // optional override name
-	Category   string  `json:"category,omitempty"` // optional grouping
-	Scrape     *scrape `json:"scrape,omitempty"`
-	RecentLogs *bytes.Buffer
+	URL        string        `json:"url"`
+	Name       string        `json:"name,omitempty"`     // optional override name
+	Category   string        `json:"category,omitempty"` // optional grouping
+	Scrape     *scrape       `json:"scrape,omitempty"`
+	RecentLogs *bytes.Buffer `json:"-"`
 
 	ticker       *time.Ticker
 	feed         *gofeed.Feed

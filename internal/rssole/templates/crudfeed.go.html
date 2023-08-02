@@ -5,6 +5,11 @@
   <li class="nav-item">
     <a data-bs-toggle="tab" data-bs-target="#scrape" class="nav-link {{if .}}{{if .Scrape}}active{{end}}{{end}}">Scrape Website</a>
   </li>
+  {{if .}}
+  <li class="nav-item">
+    <a data-bs-toggle="tab" data-bs-target="#logs" class="nav-link">Log</a>
+  </li>
+  {{end}}
 </ul>
 
 <div class="tab-content">
@@ -86,15 +91,10 @@
     <input type="hidden" name="id" value="{{.ID}}">
     {{end}}
   </form>
+
+  {{if .}}
+  <div role="tabpanel" id="logs" class="tab-pane">
+    <pre class="border border-secondary">{{.RecentLogs}}</pre>
+  </div>
+  {{end}}
 </div>
-
-<hr class="mt-10" />
-
-<small class="text-muted">
-<small>
-<h4>feed update log</h4>
-
-<pre class="border border-secondary">{{.RecentLogs}}</pre>
-
-</small>
-</small>
