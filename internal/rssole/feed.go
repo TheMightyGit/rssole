@@ -1,11 +1,13 @@
 package rssole
 
 import (
+	"bytes"
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
 	"log"
 	"sort"
+	"strings"
 	"sync"
 	"time"
 
@@ -13,15 +15,17 @@ import (
 )
 
 type feed struct {
-	URL      string  `json:"url"`
-	Name     string  `json:"name,omitempty"`     // optional override name
-	Category string  `json:"category,omitempty"` // optional grouping
-	Scrape   *scrape `json:"scrape,omitempty"`
+	URL        string        `json:"url"`
+	Name       string        `json:"name,omitempty"`     // optional override name
+	Category   string        `json:"category,omitempty"` // optional grouping
+	Scrape     *scrape       `json:"scrape,omitempty"`
+	RecentLogs *bytes.Buffer `json:"-"`
 
 	ticker       *time.Ticker
 	feed         *gofeed.Feed
 	mu           sync.RWMutex
 	wrappedItems []*wrappedItem
+	log          *log.Logger
 }
 
 func (f *feed) Link() string {
@@ -73,16 +77,21 @@ func (f *feed) Update() error {
 	fp := gofeed.NewParser()
 
 	if f.Scrape != nil {
+		f.Logln("Scraping website pages:", f.Scrape.URLs)
+
 		pseudoRss, err := f.Scrape.GeneratePseudoRssFeed()
 		if err != nil {
 			return fmt.Errorf("rss GeneratePseudoRssFeed %s %w", f.URL, err)
 		}
+
+		f.Logln("Parsing pseudo feed")
 
 		feed, err = fp.ParseString(pseudoRss)
 		if err != nil {
 			return fmt.Errorf("rss parsestring %s %w", f.URL, err)
 		}
 	} else {
+		f.Logln("Fetching and parsing feed:", f.URL)
 		feed, err = fp.ParseURL(f.URL)
 		if err != nil {
 			return fmt.Errorf("rss parseurl %s %w", f.URL, err)
@@ -92,6 +101,8 @@ func (f *feed) Update() error {
 	f.mu.Lock()
 	f.feed = feed
 	f.wrappedItems = make([]*wrappedItem, len(f.feed.Items))
+
+	f.Logln("Items in feed:", len(f.feed.Items))
 
 	for idx, item := range f.feed.Items {
 		f.wrappedItems[idx] = &wrappedItem{
@@ -129,9 +140,33 @@ func (f *feed) Update() error {
 
 	f.mu.Unlock()
 
-	log.Println("Updated:", f.URL)
+	f.Logln("Finished updating feed:", f.URL)
 
 	return nil
+}
+
+const maxRecentLogLines = 30
+
+func (f *feed) Logln(args ...any) {
+	log.Println(args...)
+
+	if f.log == nil {
+		f.RecentLogs = bytes.NewBufferString("")
+		f.log = log.New(f.RecentLogs, "", log.LstdFlags)
+	}
+
+	f.log.Println(args...)
+
+	numLines := strings.Count(f.RecentLogs.String(), "\n")
+	if numLines > maxRecentLogLines {
+		cappedLines := strings.Join(
+			strings.Split(f.RecentLogs.String(), "\n")[numLines-maxRecentLogLines:],
+			"\n",
+		)
+
+		f.RecentLogs.Reset()
+		f.RecentLogs.WriteString(cappedLines)
+	}
 }
 
 func (f *feed) StartTickedUpdate(updateTime time.Duration) {
@@ -141,15 +176,15 @@ func (f *feed) StartTickedUpdate(updateTime time.Duration) {
 
 	go func() {
 		if err := f.Update(); err != nil {
-			log.Println("error during update of", f.URL, err)
+			f.Logln("error during update of", f.URL, err)
 		}
 
-		log.Println("Starting update ticker of", updateTime, "for", f.URL)
+		f.Logln("Starting update ticker of", updateTime, "for", f.URL)
 
 		f.ticker = time.NewTicker(updateTime)
 		for range f.ticker.C {
 			if err := f.Update(); err != nil {
-				log.Println("error during update of", f.URL, err)
+				f.Logln("error during update of", f.URL, err)
 			}
 		}
 	}()
@@ -157,7 +192,7 @@ func (f *feed) StartTickedUpdate(updateTime time.Duration) {
 
 func (f *feed) StopTickedUpdate() {
 	if f.ticker != nil {
-		log.Println("Stopped update ticker for", f.URL)
+		f.Logln("Stopped update ticker for", f.URL)
 		f.ticker.Stop()
 		f.ticker = nil
 	}
