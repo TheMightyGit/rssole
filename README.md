@@ -2,26 +2,32 @@
 
 # rssole (aka rissole)
 
-An RSS Reader inspired by the late Google Reader.
+An RSS Reader inspired by the late Google Reader. Runs on your local machine or local network serving your RSS feeds via a clean responsive web interface.
 
 ![Screenshot 2023-08-03 at 09 41 52](https://github.com/TheMightyGit/rssole/assets/888751/bf202040-2976-4570-8c2e-f6c21d61613e)
 
-It's just a single binary with a single config file, feeds are viewed via your web browser. No apps, no web servers, no signing in, no analytics,
-no ads, no recommendations, no growth objectives, absolutely nothing special at all.
+A single executable with a single config file that can largely be configured within the web UI.
+
+It's greatest feature is the lack of excess features. It tries to do a simple job well and not get in the way.
 
 ## Background
 
-I really miss Google Reader, and recently noticed I'd gone back to an old habbit of jumping between various sites to scan their headlines, maintaining that sitelist purely in my head.
+I really miss Google Reader. Recently I noticed I'd gone back to an old habbit of jumping between various sites to scan their headlines, maintaining that sitelist purely in my head. So I looked at a few of the well knows RSS readers out there and nothing really grabbed me, either I didn't like the UI, or the install process seemed overly complicated, or there were just too many features, or ads. I like things simple.
 
-So I made my own non-SaaS ode to Google Reader so that I can triage my incoming information in one place with one interface in a way I like.
+So I made this non-SaaS ode to Google Reader so I can triage my incoming information in one place with one interface in a way I like. At heart this is a very self serving project solely based around my needs, and because of that it's something I use constantly. Hopefully it's of use to some other people, or you can build upon it (MIT license, do what you want to it - make it comfortable for you).
 
-The name is a pun on 'rissole'. Firstly it contains the letters R S and S and secondly because "*a compressed mixture of meat and spices, coated in breadcrumbs and fried*"
-didn't strike me as that dissimilar from the role of an RSS reader.
+The name is supposed to be a pun on 'rissole'. As well as 'rissole' containing the letters R S and S, a rissole is a "*a compressed mixture of meat and spices, coated in breadcrumbs and fried*" and that struck me as similar to the role of an RSS reader (compressing the mixed meat of the internet into a handy faceful).
 
-## Pre-Built Binaries
+## Pre-Built Binaries and Packages
 
 Check out the [Releases](https://github.com/TheMightyGit/rssole/releases/) section in github, there should be a good selection of pre-built binaries
-for various platforms.
+and packages for various platforms.
+
+## Installing via Brew
+
+```console
+$ brew install themightygit/rssole/rssole
+```
 
 ## Installing via Go
 
@@ -29,12 +35,6 @@ You can install the binary with go install:
 
 ```console
 $ go install github.com/TheMightyGit/rssole/cmd/rssole@latest
-```
-
-## Installing via Brew
-
-```console
-$ brew install themightygit/rssole/rssole
 ```
 
 ## Building
@@ -160,7 +160,6 @@ Use `category` to group similar feeds together.
   ]
 }
 ```
-
 
 ## Key Dependencies
 
