@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"text/template"
 	"time"
+
+	"github.com/NYTimes/gziphandler"
 )
 
 const (
@@ -18,6 +20,9 @@ var (
 	//go:embed templates/*
 	files     embed.FS
 	templates map[string]*template.Template
+
+	//go:embed libs/*
+	wwwlibs embed.FS
 )
 
 var (
@@ -74,6 +79,10 @@ func Start(configFilename, configReadCacheFilename, listenAddress string, update
 	http.HandleFunc("/item", item)
 	http.HandleFunc("/crudfeed", crudfeed)
 
+	httpFS := http.FileServer(http.FS(wwwlibs))
+	withGz := gziphandler.GzipHandler(httpFS)
+	http.Handle("/libs/", forceCache(withGz))
+
 	log.Printf("Listening on %s\n", listenAddress)
 
 	if err := http.ListenAndServe(listenAddress, nil); err != nil {
@@ -81,4 +90,13 @@ func Start(configFilename, configReadCacheFilename, listenAddress string, update
 	}
 
 	return nil
+}
+
+func forceCache(h http.Handler) http.Handler {
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "max-age=86400") // 24 hours
+		h.ServeHTTP(w, r)
+	}
+
+	return http.HandlerFunc(fn)
 }
