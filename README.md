@@ -8,7 +8,7 @@ An RSS Reader inspired by the late Google Reader. Runs on your local machine or 
 
 A single executable with a single config file that can largely be configured within the web UI.
 
-It's greatest feature is the lack of excess features. It tries to do a simple job well and not get in the way.
+Its greatest feature is the lack of excess features. It tries to do a simple job well and not get in the way.
 
 ## Background
 
