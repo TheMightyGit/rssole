@@ -3,6 +3,7 @@ module github.com/TheMightyGit/rssole
 go 1.20
 
 require (
+	github.com/NYTimes/gziphandler v1.1.1
 	github.com/andybalholm/cascadia v1.3.2
 	github.com/k3a/html2text v1.2.1
 	github.com/mmcdole/gofeed v1.2.1
