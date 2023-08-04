@@ -13,7 +13,7 @@ import (
 )
 
 var testItem1 = &wrappedItem{
-	IsUnread: false,
+	IsUnread: true,
 	Feed:     &feed{},
 	Item: &gofeed.Item{
 		Title:       "Story 1 Title",
@@ -207,7 +207,7 @@ func TestItemsPostMarkAsRead(t *testing.T) {
 		"Yay Feed!",
 		"Mark All Read",
 		"Story 1 Title",
-		"Story 1 Description",
+		// "Story 1 Description",
 		"http://example.com/story/1",
 	} {
 		if !strings.Contains(rr.Body.String(), expectedToFind) {

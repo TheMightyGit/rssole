@@ -1,9 +1,7 @@
 {{define "components/itemline"}}
-  {{if .IsUnread}}<strong>{{end}}
-    {{if .Title}}
-      {{.Title}}&nbsp;<i><small class="text-body-secondary">{{.Summary}}</small></i>
-    {{else}}
-      {{.Summary}}
-    {{end}}
-  {{if .IsUnread}}</strong>{{end}}
+  {{if .Title}}
+  {{if .IsUnread}}<strong>{{end}}{{.Title}}{{if .IsUnread}}</strong>{{end}}{{if .IsUnread}}{{if .Summary}}<small class="text-body-secondary"><i>&nbsp;&mdash;&nbsp;{{.Summary}}</i></small>{{end}}{{end}}
+  {{else}}
+    {{if .IsUnread}}<strong>{{end}}{{.Summary}}{{if .IsUnread}}</strong>{{end}}
+  {{end}}
 {{end}}
