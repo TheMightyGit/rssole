@@ -1,16 +1,13 @@
 {{define "components/feedline"}}
-  <span class="w-25 badge {{if gt .UnreadItemCount 0}}bg-danger{{else}}bg-secondary{{end}}">{{.UnreadItemCount}}</span>
+  <span>
+    <span class="badge {{if gt .UnreadItemCount 0}}bg-danger{{else}}bg-secondary{{end}}">{{.UnreadItemCount}}</span>
+  </span>
   &nbsp;
-  <span class="text-truncate w-100">{{.Title}}</span>
+  <span class="text-truncate flex-fill">
+    {{.Title}}
+  </span>
   &nbsp;
   <span>
-    <div class="htmx-indicator spinner-border spinner-border-sm" role="status">
-      <span class="visually-hidden">Loading...</span>
-    </div>
+    <div class="htmx-indicator spinner-border spinner-border-sm" role="status"></div>
   </span>
-  &nbsp;
-  <span class="text-secondary">
-    {{if .Scrape}}<i class="bi-browser-chrome"></i>{{else}}<i class="bi-rss-fill"></i>{{end}}
-  </span>
-  <!-- span class="text-secondary"><i class="bi-pencil-square"></i></span -->
 {{end}}
