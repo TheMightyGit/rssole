@@ -55,9 +55,10 @@
 
       <div id="collapse{{$idx}}" class="accordion-collapse collapse" data-bs-parent="#itemsAccordion">
         <div class="accordion-body m-0 p-2">
-          <div class="w-100">
-            <a href="{{.Link}}" target="_new">link</a>
-            <small>{{.PublishedParsed}}</small>
+          <div class="w-100 d-flex justify-content-between">
+            {{if .Link}}
+            <a href="{{.Link}}" class="mr-1 text-nowrap" target="_new" alt="go to story"><i class="bi-box-arrow-up-right"></i>&nbsp;link</a>
+            {{end}}
             {{if .Categories}}
               <small>
                 {{range .Categories}}
@@ -65,6 +66,7 @@
                 {{end}}
               </small>
             {{end}}
+            <small class="text-nowrap">{{.PublishedParsed}}</small>
           </div>
           <hr class="w-100" />
           <div hx-get="/item?id={{$item.ID}}&url={{$.URL | urlquery}}"
