@@ -95,9 +95,11 @@ func TestIsDescriptionImage(t *testing.T) {
 	if !w.isDescriptionImage("this_image_is_present") {
 		t.Error("expected to find 'this_image_is_present' in description images")
 	}
+
 	if !w.isDescriptionImage("this_svg_is_present") {
 		t.Error("expected to find 'this_svg_is_present' in description images")
 	}
+
 	if w.isDescriptionImage("this_not_an_image") {
 		t.Error("expected not to find 'this_not_an_image' in description images")
 	}

@@ -225,6 +225,7 @@ func TestLogln(t *testing.T) {
 	feed := &feed{}
 
 	feed.Logln("line 1")
+
 	if !strings.Contains(feed.RecentLogs.String(), "line 1\n") {
 		t.Fatal("expected to find line 1 in:", feed.RecentLogs.String())
 	}
@@ -237,9 +238,11 @@ func TestLogln_ExceedMaxLines(t *testing.T) {
 	for i := 0; i <= maxRecentLogLines+1; i++ {
 		feed.Logln("line", i, "here")
 	}
+
 	if strings.Contains(feed.RecentLogs.String(), "line 1 here\n") {
 		t.Fatal("expected not to find line 1 in:", feed.RecentLogs.String())
 	}
+
 	if !strings.Contains(feed.RecentLogs.String(), "line 2 here\n") {
 		t.Fatal("expected to find line 2 in:", feed.RecentLogs.String())
 	}

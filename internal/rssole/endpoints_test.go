@@ -174,6 +174,7 @@ func TestFeedlist_Modified(t *testing.T) {
 
 	yesterday := time.Now().Add(-time.Hour * 24)
 	req.Header.Add("If-Modified-Since", yesterday.Format(http.TimeFormat))
+
 	lastmodified = time.Now() // global
 
 	// We create a ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
@@ -361,9 +362,11 @@ func TestCrudFeed_Post_AddRssFeed(t *testing.T) {
 	if newFeed.URL != "http://example.com/added_feed_url" {
 		t.Error("expected new feed url to match, got:", newFeed.URL)
 	}
+
 	if newFeed.Name != "Feed Nickname" {
 		t.Error("expected new feed name to match, got:", newFeed.Name)
 	}
+
 	if newFeed.Category != "Super Category" {
 		t.Error("expected new feed category to match, got:", newFeed.Category)
 	}
@@ -412,9 +415,11 @@ func TestCrudFeed_Post_AddRssFeed_WithScrape(t *testing.T) {
 	if newFeed.URL != "http://example.com/added_feed_url" {
 		t.Error("expected new feed url to match, got:", newFeed.URL)
 	}
+
 	if newFeed.Name != "Feed Nickname" {
 		t.Error("expected new feed name to match, got:", newFeed.Name)
 	}
+
 	if newFeed.Category != "Super Category" {
 		t.Error("expected new feed category to match, got:", newFeed.Category)
 	}
@@ -422,16 +427,20 @@ func TestCrudFeed_Post_AddRssFeed_WithScrape(t *testing.T) {
 	if newFeed.Scrape == nil {
 		t.Fatal("expected new feed scrape not to be nil")
 	}
+
 	if newFeed.Scrape.URLs[0] != "http://example.com/1" ||
 		newFeed.Scrape.URLs[1] != "http://example.com/2" {
 		t.Error("expected new feed scrape urls to match, got:", newFeed.Scrape.URLs)
 	}
+
 	if newFeed.Scrape.Item != "Scrape Item CSS Selector" {
 		t.Error("expected new feed scrape item to match, got:", newFeed.Scrape.Item)
 	}
+
 	if newFeed.Scrape.Title != "Scrape Title CSS Selector" {
 		t.Error("expected new feed scrape title to match, got:", newFeed.Scrape.Title)
 	}
+
 	if newFeed.Scrape.Link != "Scrape Link CSS Selector" {
 		t.Error("expected new feed scrape link to match, got:", newFeed.Scrape.Link)
 	}
@@ -506,9 +515,11 @@ func TestCrudFeed_Post_UpdateRssFeed_WithScrape(t *testing.T) {
 	if updatedFeed.URL != "http://example.com/added_feed_url" {
 		t.Error("expected new feed url to match, got:", updatedFeed.URL)
 	}
+
 	if updatedFeed.Name != "Feed Nickname" {
 		t.Error("expected new feed name to match, got:", updatedFeed.Name)
 	}
+
 	if updatedFeed.Category != "Super Category" {
 		t.Error("expected new feed category to match, got:", updatedFeed.Category)
 	}
@@ -516,16 +527,20 @@ func TestCrudFeed_Post_UpdateRssFeed_WithScrape(t *testing.T) {
 	if updatedFeed.Scrape == nil {
 		t.Fatal("expected new feed scrape not to be nil")
 	}
+
 	if updatedFeed.Scrape.URLs[0] != "http://example.com/1" ||
 		updatedFeed.Scrape.URLs[1] != "http://example.com/2" {
 		t.Error("expected new feed scrape urls to match, got:", updatedFeed.Scrape.URLs)
 	}
+
 	if updatedFeed.Scrape.Item != "Scrape Item CSS Selector" {
 		t.Error("expected new feed scrape item to match, got:", updatedFeed.Scrape.Item)
 	}
+
 	if updatedFeed.Scrape.Title != "Scrape Title CSS Selector" {
 		t.Error("expected new feed scrape title to match, got:", updatedFeed.Scrape.Title)
 	}
+
 	if updatedFeed.Scrape.Link != "Scrape Link CSS Selector" {
 		t.Error("expected new feed scrape link to match, got:", updatedFeed.Scrape.Link)
 	}

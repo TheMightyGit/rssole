@@ -61,6 +61,7 @@ func feedlist(w http.ResponseWriter, req *http.Request) {
 	// which is respected by htmx.
 	if feedsNotModified(req) {
 		w.WriteHeader(http.StatusNotModified)
+
 		return
 	}
 

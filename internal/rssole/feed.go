@@ -145,6 +145,7 @@ func (f *feed) Update() error {
 	f.mu.Unlock()
 
 	f.Logln("Finished updating feed:", f.URL)
+
 	lastmodified = time.Now()
 
 	return nil
