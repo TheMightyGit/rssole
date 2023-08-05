@@ -8,6 +8,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/mmcdole/gofeed"
 )
@@ -39,6 +40,9 @@ func init() {
 			testItem1,
 		},
 	})
+
+	// zero will cause errors if UpdateTime is not set positive
+	allFeeds.UpdateTime = 10
 }
 
 var readCacheDir string
@@ -84,7 +88,6 @@ func TestIndex(t *testing.T) {
 	// directly and pass in our Request and ResponseRecorder.
 	handler.ServeHTTP(rr, req)
 
-	// Check the status code is what we expect.
 	if status := rr.Code; status != http.StatusOK {
 		t.Errorf("handler returned wrong status code: got %v want %v",
 			status, http.StatusOK)
@@ -118,7 +121,6 @@ func TestFeedlist(t *testing.T) {
 	// directly and pass in our Request and ResponseRecorder.
 	handler.ServeHTTP(rr, req)
 
-	// Check the status code is what we expect.
 	if status := rr.Code; status != http.StatusOK {
 		t.Errorf("handler returned wrong status code: got %v want %v",
 			status, http.StatusOK)
@@ -133,6 +135,59 @@ func TestFeedlist(t *testing.T) {
 			t.Errorf("handler returned page without expected content: got %v could not find '%v'",
 				rr.Body.String(), expectedToFind)
 		}
+	}
+}
+
+func TestFeedlist_NotModified(t *testing.T) {
+	defer setUpTearDown(t)(t)
+
+	req, err := http.NewRequest(http.MethodGet, "/feeds", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	req.Header.Add("If-Modified-Since", time.Now().Format(http.TimeFormat))
+	yesterday := time.Now().Add(-time.Hour * 24)
+	lastmodified = yesterday // global
+
+	// We create a ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
+	rr := httptest.NewRecorder()
+	handler := http.HandlerFunc(feedlist)
+
+	// Our handlers satisfy http.Handler, so we can call their ServeHTTP method
+	// directly and pass in our Request and ResponseRecorder.
+	handler.ServeHTTP(rr, req)
+
+	if status := rr.Code; status != http.StatusNotModified {
+		t.Errorf("handler returned wrong status code: got %v want %v",
+			status, http.StatusNotModified)
+	}
+}
+
+func TestFeedlist_Modified(t *testing.T) {
+	defer setUpTearDown(t)(t)
+
+	req, err := http.NewRequest(http.MethodGet, "/feeds", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	yesterday := time.Now().Add(-time.Hour * 24)
+	req.Header.Add("If-Modified-Since", yesterday.Format(http.TimeFormat))
+
+	lastmodified = time.Now() // global
+
+	// We create a ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
+	rr := httptest.NewRecorder()
+	handler := http.HandlerFunc(feedlist)
+
+	// Our handlers satisfy http.Handler, so we can call their ServeHTTP method
+	// directly and pass in our Request and ResponseRecorder.
+	handler.ServeHTTP(rr, req)
+
+	if status := rr.Code; status != http.StatusOK {
+		t.Errorf("handler returned wrong status code: got %v want %v",
+			status, http.StatusOK)
 	}
 }
 
@@ -152,7 +207,6 @@ func TestItemsGet(t *testing.T) {
 	// directly and pass in our Request and ResponseRecorder.
 	handler.ServeHTTP(rr, req)
 
-	// Check the status code is what we expect.
 	if status := rr.Code; status != http.StatusOK {
 		t.Errorf("handler returned wrong status code: got %v want %v",
 			status, http.StatusOK)
@@ -197,7 +251,6 @@ func TestItemsPostMarkAsRead(t *testing.T) {
 	// directly and pass in our Request and ResponseRecorder.
 	handler.ServeHTTP(rr, req)
 
-	// Check the status code is what we expect.
 	if status := rr.Code; status != http.StatusOK {
 		t.Errorf("handler returned wrong status code: got %v want %v",
 			status, http.StatusOK)
@@ -239,7 +292,6 @@ func TestItem(t *testing.T) {
 	// directly and pass in our Request and ResponseRecorder.
 	handler.ServeHTTP(rr, req)
 
-	// Check the status code is what we expect.
 	if status := rr.Code; status != http.StatusOK {
 		t.Errorf("handler returned wrong status code: got %v want %v",
 			status, http.StatusOK)
@@ -252,5 +304,244 @@ func TestItem(t *testing.T) {
 			t.Errorf("handler returned page without expected content: got\n%v\ncould not find '%v'",
 				rr.Body.String(), expectedToFind)
 		}
+	}
+}
+
+func TestCrudFeed_Get(t *testing.T) {
+	defer setUpTearDown(t)(t)
+
+	req, err := http.NewRequest(http.MethodGet, "/crudfeed?feed=12345", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rr := httptest.NewRecorder()
+	handler := http.HandlerFunc(crudfeed)
+	handler.ServeHTTP(rr, req)
+
+	if status := rr.Code; status != http.StatusOK {
+		t.Errorf("handler returned wrong status code: got %v want %v",
+			status, http.StatusOK)
+	}
+}
+
+func TestCrudFeed_Post_AddRssFeed(t *testing.T) {
+	defer setUpTearDown(t)(t)
+
+	currentNumFeeds := len(allFeeds.Feeds)
+
+	data := url.Values{}
+	data.Add("url", "http://example.com/added_feed_url")
+	data.Add("name", "Feed Nickname")
+	data.Add("category", "Super Category")
+
+	body := strings.NewReader(data.Encode())
+
+	req, err := http.NewRequest(http.MethodPost, "/crudfeed", body)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+
+	rr := httptest.NewRecorder()
+	handler := http.HandlerFunc(crudfeed)
+	handler.ServeHTTP(rr, req)
+
+	if status := rr.Code; status != http.StatusOK {
+		t.Errorf("handler returned wrong status code: got %v want %v",
+			status, http.StatusOK)
+	}
+
+	// did a feed get added?
+	if len(allFeeds.Feeds) != currentNumFeeds+1 {
+		t.Errorf("expected number of feeds to be higher now, but got: %d", len(allFeeds.Feeds))
+	}
+
+	newFeed := allFeeds.Feeds[currentNumFeeds]
+	if newFeed.URL != "http://example.com/added_feed_url" {
+		t.Error("expected new feed url to match, got:", newFeed.URL)
+	}
+
+	if newFeed.Name != "Feed Nickname" {
+		t.Error("expected new feed name to match, got:", newFeed.Name)
+	}
+
+	if newFeed.Category != "Super Category" {
+		t.Error("expected new feed category to match, got:", newFeed.Category)
+	}
+}
+
+func TestCrudFeed_Post_AddRssFeed_WithScrape(t *testing.T) {
+	defer setUpTearDown(t)(t)
+
+	// do we start with the expected number of feeds?
+	currentNumFeeds := len(allFeeds.Feeds)
+
+	data := url.Values{}
+	data.Add("url", "http://example.com/added_feed_url")
+	data.Add("name", "Feed Nickname")
+	data.Add("category", "Super Category")
+
+	data.Add("scrape.urls", "http://example.com/1\nhttp://example.com/2")
+	data.Add("scrape.item", "Scrape Item CSS Selector")
+	data.Add("scrape.title", "Scrape Title CSS Selector")
+	data.Add("scrape.link", "Scrape Link CSS Selector")
+
+	body := strings.NewReader(data.Encode())
+
+	req, err := http.NewRequest(http.MethodPost, "/crudfeed", body)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+
+	rr := httptest.NewRecorder()
+	handler := http.HandlerFunc(crudfeed)
+	handler.ServeHTTP(rr, req)
+
+	if status := rr.Code; status != http.StatusOK {
+		t.Errorf("handler returned wrong status code: got %v want %v",
+			status, http.StatusOK)
+	}
+
+	// did a feed get added?
+	if len(allFeeds.Feeds) != currentNumFeeds+1 {
+		t.Errorf("expected number of feeds to be higher now, but got: %d", len(allFeeds.Feeds))
+	}
+
+	newFeed := allFeeds.Feeds[currentNumFeeds]
+	if newFeed.URL != "http://example.com/added_feed_url" {
+		t.Error("expected new feed url to match, got:", newFeed.URL)
+	}
+
+	if newFeed.Name != "Feed Nickname" {
+		t.Error("expected new feed name to match, got:", newFeed.Name)
+	}
+
+	if newFeed.Category != "Super Category" {
+		t.Error("expected new feed category to match, got:", newFeed.Category)
+	}
+
+	if newFeed.Scrape == nil {
+		t.Fatal("expected new feed scrape not to be nil")
+	}
+
+	if newFeed.Scrape.URLs[0] != "http://example.com/1" ||
+		newFeed.Scrape.URLs[1] != "http://example.com/2" {
+		t.Error("expected new feed scrape urls to match, got:", newFeed.Scrape.URLs)
+	}
+
+	if newFeed.Scrape.Item != "Scrape Item CSS Selector" {
+		t.Error("expected new feed scrape item to match, got:", newFeed.Scrape.Item)
+	}
+
+	if newFeed.Scrape.Title != "Scrape Title CSS Selector" {
+		t.Error("expected new feed scrape title to match, got:", newFeed.Scrape.Title)
+	}
+
+	if newFeed.Scrape.Link != "Scrape Link CSS Selector" {
+		t.Error("expected new feed scrape link to match, got:", newFeed.Scrape.Link)
+	}
+}
+
+func TestCrudFeed_Post_DeleteRssFeed(t *testing.T) {
+	defer setUpTearDown(t)(t)
+
+	currentNumFeeds := len(allFeeds.Feeds)
+
+	data := url.Values{}
+	data.Add("id", allFeeds.Feeds[0].ID())
+	data.Add("delete", "delete")
+
+	body := strings.NewReader(data.Encode())
+
+	req, err := http.NewRequest(http.MethodPost, "/crudfeed", body)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+
+	rr := httptest.NewRecorder()
+	handler := http.HandlerFunc(crudfeed)
+	handler.ServeHTTP(rr, req)
+
+	if status := rr.Code; status != http.StatusOK {
+		t.Errorf("handler returned wrong status code: got %v want %v",
+			status, http.StatusOK)
+	}
+
+	// did a feed get removed?
+	if len(allFeeds.Feeds) != currentNumFeeds-1 {
+		t.Errorf("expected number of feeds to be lower now, but got: %d", len(allFeeds.Feeds))
+	}
+}
+
+func TestCrudFeed_Post_UpdateRssFeed_WithScrape(t *testing.T) {
+	defer setUpTearDown(t)(t)
+
+	data := url.Values{}
+	data.Add("id", allFeeds.Feeds[0].ID()) // replace whatever's there
+	data.Add("url", "http://example.com/added_feed_url")
+	data.Add("name", "Feed Nickname")
+	data.Add("category", "Super Category")
+
+	data.Add("scrape.urls", "http://example.com/1\nhttp://example.com/2")
+	data.Add("scrape.item", "Scrape Item CSS Selector")
+	data.Add("scrape.title", "Scrape Title CSS Selector")
+	data.Add("scrape.link", "Scrape Link CSS Selector")
+
+	body := strings.NewReader(data.Encode())
+
+	req, err := http.NewRequest(http.MethodPost, "/crudfeed", body)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+
+	rr := httptest.NewRecorder()
+	handler := http.HandlerFunc(crudfeed)
+	handler.ServeHTTP(rr, req)
+
+	if status := rr.Code; status != http.StatusOK {
+		t.Errorf("handler returned wrong status code: got %v want %v",
+			status, http.StatusOK)
+	}
+
+	updatedFeed := allFeeds.Feeds[0]
+	if updatedFeed.URL != "http://example.com/added_feed_url" {
+		t.Error("expected new feed url to match, got:", updatedFeed.URL)
+	}
+
+	if updatedFeed.Name != "Feed Nickname" {
+		t.Error("expected new feed name to match, got:", updatedFeed.Name)
+	}
+
+	if updatedFeed.Category != "Super Category" {
+		t.Error("expected new feed category to match, got:", updatedFeed.Category)
+	}
+
+	if updatedFeed.Scrape == nil {
+		t.Fatal("expected new feed scrape not to be nil")
+	}
+
+	if updatedFeed.Scrape.URLs[0] != "http://example.com/1" ||
+		updatedFeed.Scrape.URLs[1] != "http://example.com/2" {
+		t.Error("expected new feed scrape urls to match, got:", updatedFeed.Scrape.URLs)
+	}
+
+	if updatedFeed.Scrape.Item != "Scrape Item CSS Selector" {
+		t.Error("expected new feed scrape item to match, got:", updatedFeed.Scrape.Item)
+	}
+
+	if updatedFeed.Scrape.Title != "Scrape Title CSS Selector" {
+		t.Error("expected new feed scrape title to match, got:", updatedFeed.Scrape.Title)
+	}
+
+	if updatedFeed.Scrape.Link != "Scrape Link CSS Selector" {
+		t.Error("expected new feed scrape link to match, got:", updatedFeed.Scrape.Link)
 	}
 }

@@ -79,13 +79,13 @@ func Start(configFilename, configReadCacheFilename, listenAddress string, update
 	http.HandleFunc("/item", item)
 	http.HandleFunc("/crudfeed", crudfeed)
 
+	// As the static files won't change we force the browser to cache them.
 	httpFS := http.FileServer(http.FS(wwwlibs))
-	withGz := gziphandler.GzipHandler(httpFS)
-	http.Handle("/libs/", forceCache(withGz))
+	http.Handle("/libs/", forceCache(httpFS))
 
 	log.Printf("Listening on %s\n", listenAddress)
 
-	if err := http.ListenAndServe(listenAddress, nil); err != nil {
+	if err := http.ListenAndServe(listenAddress, gziphandler.GzipHandler(http.DefaultServeMux)); err != nil {
 		return fmt.Errorf("error during ListenAndServe - %w", err)
 	}
 
