@@ -14,11 +14,10 @@
         <form hx-post="/items?url={{.URL | urlquery}}"
               hx-target="#items"
               hx-indicator="#feedspinner">
-        {{range $idx, $item := .Items}}
-          {{if $item.IsUnread}}
-          <input type="hidden" name="read" value="{{$item.Link}}">
-          {{end}}
-        {{end}}
+        {{- range $idx, $item := .Items -}}
+          {{if $item.IsUnread}}<input type="hidden" name="read" value="{{$item.MarkReadID}}">
+{{end}}
+        {{- end -}}
           <button
             type="submit"
             hx-target="#items"

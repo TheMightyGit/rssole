@@ -24,6 +24,18 @@ type wrappedItem struct {
 	images                     *[]string
 }
 
+func (w *wrappedItem) MarkReadID() string {
+	id := w.Link
+	if id == "" {
+		id = w.GUID
+		if id == "" {
+			id = url.QueryEscape(w.Title)
+		}
+	}
+
+	return id
+}
+
 func (w *wrappedItem) Images() []string {
 	if w.images != nil { // used cached version
 		return *w.images
@@ -187,7 +199,7 @@ func (w *wrappedItem) Summary() string {
 }
 
 func (w *wrappedItem) ID() string {
-	hash := md5.Sum([]byte(w.Link))
+	hash := md5.Sum([]byte(w.MarkReadID()))
 
 	return hex.EncodeToString(hash[:])
 }

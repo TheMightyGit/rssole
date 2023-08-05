@@ -14,6 +14,9 @@ import (
 	"github.com/mmcdole/gofeed"
 )
 
+// global last modified for use in Last-Modified/If-Modified-Since
+var lastmodified time.Time
+
 type feed struct {
 	URL        string        `json:"url"`
 	Name       string        `json:"name,omitempty"`     // optional override name
@@ -105,11 +108,12 @@ func (f *feed) Update() error {
 	f.Logln("Items in feed:", len(f.feed.Items))
 
 	for idx, item := range f.feed.Items {
-		f.wrappedItems[idx] = &wrappedItem{
-			IsUnread: readLut.isUnread(item.Link),
-			Feed:     f,
-			Item:     item,
+		wItem := &wrappedItem{
+			Feed: f,
+			Item: item,
 		}
+		wItem.IsUnread = readLut.isUnread(wItem.MarkReadID())
+		f.wrappedItems[idx] = wItem
 	}
 
 	sort.Slice(f.wrappedItems, func(i, j int) bool {
@@ -141,6 +145,7 @@ func (f *feed) Update() error {
 	f.mu.Unlock()
 
 	f.Logln("Finished updating feed:", f.URL)
+	lastmodified = time.Now()
 
 	return nil
 }

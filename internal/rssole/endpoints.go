@@ -18,6 +18,8 @@ func feedlistCommon(w http.ResponseWriter, selected string) {
 	allFeeds.mu.RLock()
 	defer allFeeds.mu.RUnlock()
 
+	w.Header().Add("Last-Modified", lastmodified.Format(http.TimeFormat))
+
 	for _, f := range allFeeds.Feeds {
 		f.mu.RLock()
 	}
@@ -35,7 +37,33 @@ func feedlistCommon(w http.ResponseWriter, selected string) {
 	}
 }
 
+func feedsNotModified(req *http.Request) bool {
+	// make precision equal for test
+	lastmod, _ := http.ParseTime(lastmodified.Format(http.TimeFormat))
+
+	imsRaw := req.Header.Get("if-modified-since")
+	if imsRaw != "" {
+		// has any feed (or mark as read) been modified since last time?
+		ims, err := http.ParseTime(req.Header.Get("if-modified-since"))
+		if err == nil {
+			if ims.After(lastmod) ||
+				ims.Equal(lastmod) {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
 func feedlist(w http.ResponseWriter, req *http.Request) {
+	// To greatly reduce the bandwidth from polling we use Last-Modified/If-Modified-Since
+	// which is respected by htmx.
+	if feedsNotModified(req) {
+		w.WriteHeader(http.StatusNotModified)
+		return
+	}
+
 	selected := req.URL.Query().Get("selected")
 	feedlistCommon(w, selected)
 }
@@ -62,10 +90,10 @@ func items(w http.ResponseWriter, req *http.Request) {
 			if f.feed != nil && f.URL == feedURL {
 				f.mu.Lock()
 				for _, i := range f.Items() {
-					if markRead[i.Link] {
-						log.Println("marking read", i.Link)
+					if markRead[i.MarkReadID()] {
+						log.Println("marking read", i.MarkReadID())
 						i.IsUnread = false
-						readLut.markRead(i.Link)
+						readLut.markRead(i.MarkReadID())
 					}
 				}
 				f.mu.Unlock()
@@ -104,7 +132,7 @@ func item(w http.ResponseWriter, req *http.Request) {
 						log.Println(err)
 					}
 
-					readLut.markRead(item.Link)
+					readLut.markRead(item.MarkReadID())
 					readLut.persistReadLut()
 
 					break
@@ -116,80 +144,88 @@ func item(w http.ResponseWriter, req *http.Request) {
 	allFeeds.mu.RUnlock()
 }
 
+func crudfeedGet(w http.ResponseWriter, req *http.Request) {
+	var f *feed
+
+	feedID := req.URL.Query().Get("feed")
+	if feedID != "" {
+		f = allFeeds.getFeedByID(feedID)
+	}
+
+	if err := templates["crudfeed.go.html"].Execute(w, f); err != nil {
+		log.Println(err)
+	}
+}
+
+func crudfeedPost(w http.ResponseWriter, req *http.Request) {
+	err := req.ParseForm()
+	if err != nil {
+		log.Println(err)
+	}
+
+	id := req.FormValue("id")
+	feedurl := req.FormValue("url")
+	name := req.FormValue("name")
+	category := req.FormValue("category")
+
+	scrapeURLs := req.FormValue("scrape.urls")
+	scrapeItem := req.FormValue("scrape.item")
+	scrapeTitle := req.FormValue("scrape.title")
+	scrapeLink := req.FormValue("scrape.link")
+
+	var scr *scrape
+	if scrapeURLs != "" || scrapeItem != "" || scrapeTitle != "" || scrapeLink != "" {
+		scr = &scrape{
+			URLs:  strings.Split(strings.TrimSpace(scrapeURLs), "\n"),
+			Item:  scrapeItem,
+			Title: scrapeTitle,
+			Link:  scrapeLink,
+		}
+	}
+
+	if id != "" { // edit or delete
+		del := req.FormValue("delete")
+		if del != "" {
+			allFeeds.delFeed(id)
+			fmt.Fprint(w, `Deleted.`)
+			feedlistCommon(w, "_")
+		} else {
+			// update
+			f := allFeeds.getFeedByID(id)
+			if f != nil {
+				f.mu.Lock()
+				f.URL = feedurl
+				f.Name = name
+				f.Category = category
+				f.Scrape = scr
+				f.mu.Unlock()
+				feedlistCommon(w, f.Title())
+				fmt.Fprintf(w, `<div hx-get="/items?url=%s" hx-trigger="load" hx-target="#items"></div>`, url.QueryEscape(f.URL))
+			} else {
+				fmt.Fprint(w, `Not found.`)
+			}
+		}
+	} else { // add
+		feed := &feed{
+			URL:      feedurl,
+			Name:     name,
+			Category: category,
+			Scrape:   scr,
+		}
+		allFeeds.addFeed(feed)
+
+		fmt.Fprintf(w, `<div hx-get="/items?url=%s" hx-trigger="load" hx-target="#items"></div>`, url.QueryEscape(feed.URL))
+	}
+	// something may have changed, so save it.
+	if err := allFeeds.saveFeedsFile(); err != nil {
+		log.Println(err)
+	}
+}
+
 func crudfeed(w http.ResponseWriter, req *http.Request) {
 	if req.Method == http.MethodGet {
-		var f *feed
-
-		feedID := req.URL.Query().Get("feed")
-		if feedID != "" {
-			f = allFeeds.getFeedByID(feedID)
-		}
-
-		if err := templates["crudfeed.go.html"].Execute(w, f); err != nil {
-			log.Println(err)
-		}
+		crudfeedGet(w, req)
 	} else if req.Method == http.MethodPost {
-		err := req.ParseForm()
-		if err != nil {
-			log.Println(err)
-		}
-
-		id := req.FormValue("id")
-		feedurl := req.FormValue("url")
-		name := req.FormValue("name")
-		category := req.FormValue("category")
-
-		scrapeURLs := req.FormValue("scrape.urls")
-		scrapeItem := req.FormValue("scrape.item")
-		scrapeTitle := req.FormValue("scrape.title")
-		scrapeLink := req.FormValue("scrape.link")
-
-		var scr *scrape
-		if scrapeURLs != "" || scrapeItem != "" || scrapeTitle != "" || scrapeLink != "" {
-			scr = &scrape{
-				URLs:  strings.Split(strings.TrimSpace(scrapeURLs), "\n"),
-				Item:  scrapeItem,
-				Title: scrapeTitle,
-				Link:  scrapeLink,
-			}
-		}
-
-		if id != "" { // edit or delete
-			del := req.FormValue("delete")
-			if del != "" {
-				allFeeds.delFeed(id)
-				fmt.Fprint(w, `Deleted.`)
-				feedlistCommon(w, "_")
-			} else {
-				// update
-				f := allFeeds.getFeedByID(id)
-				if f != nil {
-					f.mu.Lock()
-					f.URL = feedurl
-					f.Name = name
-					f.Category = category
-					f.Scrape = scr
-					f.mu.Unlock()
-					feedlistCommon(w, f.Title())
-					fmt.Fprintf(w, `<div hx-get="/items?url=%s" hx-trigger="load" hx-target="#items"></div>`, url.QueryEscape(f.URL))
-				} else {
-					fmt.Fprint(w, `Not found.`)
-				}
-			}
-		} else { // add
-			feed := &feed{
-				URL:      feedurl,
-				Name:     name,
-				Category: category,
-				Scrape:   scr,
-			}
-			allFeeds.addFeed(feed)
-
-			fmt.Fprintf(w, `<div hx-get="/items?url=%s" hx-trigger="load" hx-target="#items"></div>`, url.QueryEscape(feed.URL))
-		}
-		// something may have changed, so save it.
-		if err := allFeeds.saveFeedsFile(); err != nil {
-			log.Println(err)
-		}
+		crudfeedPost(w, req)
 	}
 }
