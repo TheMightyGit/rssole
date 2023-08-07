@@ -11,9 +11,8 @@ import (
 type unreadLut struct {
 	Filename string
 
-	lut      map[string]time.Time
-	mu       sync.RWMutex
-	onceInit sync.Once
+	lut map[string]time.Time
+	mu  sync.RWMutex
 }
 
 func (u *unreadLut) loadReadLut() {
@@ -24,9 +23,6 @@ func (u *unreadLut) loadReadLut() {
 	if err != nil {
 		log.Println(err)
 	} else {
-		u.onceInit.Do(func() {
-			u.lut = map[string]time.Time{}
-		})
 		err = json.Unmarshal(body, &u.lut)
 		if err != nil {
 			log.Println("error unmarshall readlut:", err)
@@ -82,9 +78,9 @@ func (u *unreadLut) markRead(url string) {
 	u.mu.Lock()
 	defer u.mu.Unlock()
 
-	u.onceInit.Do(func() {
+	if u.lut == nil {
 		u.lut = map[string]time.Time{}
-	})
+	}
 
 	u.lut[url] = time.Now()
 
