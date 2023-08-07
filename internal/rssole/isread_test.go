@@ -33,7 +33,7 @@ func TestIsUnread(t *testing.T) {
 	readLut1.markRead("this_is_read")
 
 	if readLut1.isUnread("persisted_read") {
-		t.Fatal("this_is_read should be read")
+		t.Fatal("persisted_read should be read")
 	}
 
 	if readLut1.isUnread("this_is_read") {

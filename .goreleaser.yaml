@@ -1,7 +1,7 @@
 before:
   hooks:
     - go mod tidy
-    - go test ./...
+    - go test -race ./...
 builds:
   - main: ./cmd/rssole/
     env:
