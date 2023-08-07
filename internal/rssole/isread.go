@@ -24,6 +24,9 @@ func (u *unreadLut) loadReadLut() {
 	if err != nil {
 		log.Println(err)
 	} else {
+		u.onceInit.Do(func() {
+			u.lut = map[string]time.Time{}
+		})
 		err = json.Unmarshal(body, &u.lut)
 		if err != nil {
 			log.Println("error unmarshall readlut:", err)

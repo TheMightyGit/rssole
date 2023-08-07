@@ -94,12 +94,19 @@ func (w *wrappedItem) isDescriptionImage(src string) bool {
 
 func (w *wrappedItem) Description() string {
 	w.onceDescription.Do(func() {
+		// start with whichever is longer out of .Description or .Content
+		// (sites vary about which they use, we'll take the biggest)
+		desc := &w.Item.Description
+		if len(w.Item.Content) > len(*desc) {
+			desc = &w.Item.Content
+		}
+
 		// try and sanitise any html
-		doc, err := html.Parse(strings.NewReader(w.Item.Description))
+		doc, err := html.Parse(strings.NewReader(*desc))
 		if err != nil {
 			// failed to sanitise, so just return as is...
 			log.Println(err)
-			w.description = &w.Item.Description
+			w.description = desc
 		} else {
 			w.descriptionImagesForDedupe = &[]string{}
 			toDelete := []*html.Node{}
