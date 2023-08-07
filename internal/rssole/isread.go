@@ -84,9 +84,7 @@ func (u *unreadLut) markRead(url string) {
 
 	u.lut[url] = time.Now()
 
-	muLastmodified.Lock()
-	lastmodified = time.Now() // something changed
-	muLastmodified.Unlock()
+	updateLastmodified()
 }
 
 const lutFilePerms = 0o644

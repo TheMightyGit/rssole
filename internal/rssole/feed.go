@@ -20,6 +20,12 @@ var (
 	lastmodified   time.Time
 )
 
+func updateLastmodified() {
+	muLastmodified.Lock()
+	lastmodified = time.Now()
+	muLastmodified.Unlock()
+}
+
 type feed struct {
 	URL        string        `json:"url"`
 	Name       string        `json:"name,omitempty"`     // optional override name
@@ -151,9 +157,7 @@ func (f *feed) Update() error {
 
 	f.Logln("Finished updating feed:", f.URL)
 
-	muLastmodified.Lock()
-	lastmodified = time.Now()
-	muLastmodified.Unlock()
+	updateLastmodified()
 
 	return nil
 }
