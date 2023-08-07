@@ -182,6 +182,7 @@ func TestStartTickedUpdate(t *testing.T) {
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		updateCount++
+
 		fmt.Fprintln(w, `<?xml version="1.0" encoding="UTF-8" ?>
 <rss version="2.0">
 <channel>
@@ -203,21 +204,15 @@ func TestStartTickedUpdate(t *testing.T) {
 	}
 
 	feed.StartTickedUpdate(10 * time.Millisecond)
-
 	time.Sleep(45 * time.Millisecond)
+	feed.StopTickedUpdate()
 
-	if feed.ticker == nil {
-		t.Fatal("expected ticker not to be nil")
+	if updateCount == 1 {
+		t.Fatal("expected more than 1 updates to have happened, got", updateCount)
 	}
 
-	defer feed.ticker.Stop()
-
-	if updateCount == 4 {
-		t.Fatal("expected 4 updates to have happened")
-	}
-
-	if feed.feed == nil {
-		t.Fatal("expected feed not to be nil")
+	if feed.Title() != "Feed Title" {
+		t.Fatal("unexpected feed title of:", feed.Title())
 	}
 }
 

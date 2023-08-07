@@ -15,7 +15,10 @@ import (
 )
 
 // global last modified for use in Last-Modified/If-Modified-Since
-var lastmodified time.Time
+var (
+	muLastmodified sync.Mutex
+	lastmodified   time.Time
+)
 
 type feed struct {
 	URL        string        `json:"url"`
@@ -24,9 +27,11 @@ type feed struct {
 	Scrape     *scrape       `json:"scrape,omitempty"`
 	RecentLogs *bytes.Buffer `json:"-"`
 
+	onceLogSetup sync.Once
 	ticker       *time.Ticker
 	feed         *gofeed.Feed
 	mu           sync.RWMutex
+	muLog        sync.Mutex
 	wrappedItems []*wrappedItem
 	log          *log.Logger
 }
@@ -146,7 +151,9 @@ func (f *feed) Update() error {
 
 	f.Logln("Finished updating feed:", f.URL)
 
+	muLastmodified.Lock()
 	lastmodified = time.Now()
+	muLastmodified.Unlock()
 
 	return nil
 }
@@ -154,12 +161,15 @@ func (f *feed) Update() error {
 const maxRecentLogLines = 30
 
 func (f *feed) Logln(args ...any) {
+	f.muLog.Lock()
+	defer f.muLog.Unlock()
+
 	log.Println(args...)
 
-	if f.log == nil {
+	f.onceLogSetup.Do(func() {
 		f.RecentLogs = bytes.NewBufferString("")
 		f.log = log.New(f.RecentLogs, "", log.LstdFlags)
-	}
+	})
 
 	f.log.Println(args...)
 
@@ -180,14 +190,14 @@ func (f *feed) StartTickedUpdate(updateTime time.Duration) {
 		return // already running
 	}
 
+	f.Logln("Starting update ticker of", updateTime, "for", f.URL)
+	f.ticker = time.NewTicker(updateTime)
+
 	go func() {
 		if err := f.Update(); err != nil {
 			f.Logln("error during update of", f.URL, err)
 		}
 
-		f.Logln("Starting update ticker of", updateTime, "for", f.URL)
-
-		f.ticker = time.NewTicker(updateTime)
 		for range f.ticker.C {
 			if err := f.Update(); err != nil {
 				f.Logln("error during update of", f.URL, err)
