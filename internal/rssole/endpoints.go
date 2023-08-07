@@ -18,7 +18,7 @@ func feedlistCommon(w http.ResponseWriter, selected string) {
 	allFeeds.mu.RLock()
 	defer allFeeds.mu.RUnlock()
 
-	w.Header().Add("Last-Modified", lastmodified.Format(http.TimeFormat))
+	w.Header().Add("Last-Modified", getLastmodified().Format(http.TimeFormat))
 
 	for _, f := range allFeeds.Feeds {
 		f.mu.RLock()
@@ -39,7 +39,7 @@ func feedlistCommon(w http.ResponseWriter, selected string) {
 
 func feedsNotModified(req *http.Request) bool {
 	// make precision equal for test
-	lastmod, _ := http.ParseTime(lastmodified.Format(http.TimeFormat))
+	lastmod, _ := http.ParseTime(getLastmodified().Format(http.TimeFormat))
 
 	imsRaw := req.Header.Get("if-modified-since")
 	if imsRaw != "" {

@@ -26,6 +26,13 @@ func updateLastmodified() {
 	muLastmodified.Unlock()
 }
 
+func getLastmodified() time.Time {
+	muLastmodified.Lock()
+	defer muLastmodified.Unlock()
+
+	return lastmodified
+}
+
 type feed struct {
 	URL        string        `json:"url"`
 	Name       string        `json:"name,omitempty"`     // optional override name
