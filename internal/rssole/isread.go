@@ -11,8 +11,9 @@ import (
 type unreadLut struct {
 	Filename string
 
-	lut map[string]time.Time
-	mu  sync.RWMutex
+	lut      map[string]time.Time
+	mu       sync.RWMutex
+	onceInit sync.Once
 }
 
 func (u *unreadLut) loadReadLut() {
@@ -78,9 +79,9 @@ func (u *unreadLut) markRead(url string) {
 	u.mu.Lock()
 	defer u.mu.Unlock()
 
-	if u.lut == nil {
+	u.onceInit.Do(func() {
 		u.lut = map[string]time.Time{}
-	}
+	})
 
 	u.lut[url] = time.Now()
 
