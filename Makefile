@@ -46,4 +46,4 @@ clean:
 	$(GO) clean -cache -modcache -testcache
 	rm -Rf dist
 	rm -Rf .test_dummy
-	rm rssole
+	rm -f rssole

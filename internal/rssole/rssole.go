@@ -16,6 +16,8 @@ const (
 	templatesDir = "templates"
 )
 
+var Version = "dev"
+
 var (
 	//go:embed templates/*
 	files     embed.FS
