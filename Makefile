@@ -1,3 +1,7 @@
+##
+## NOTE: This makefile is just helpful stuff for the developer.
+## You don't need it to build this project, just use the regular go tooling.
+##
 GO?=go
 GO_CODE=$(shell find . -name '*.go')
 GO_TEMPLATES=$(shell find . -name '*.go.html')
