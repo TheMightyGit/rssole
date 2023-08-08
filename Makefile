@@ -20,7 +20,7 @@ gotest:
 	$(GO) test -race -cover ./...
 
 badge.svg: $(SOURCES)
-	AMOUNT=$(shell $(GO) test -cover ./... | grep "github.com/TheMightyGit/rssole/internal/rssole" | cut -f 4 | cut -f 2 -d ' ' | cut -f 1 -d '.'); \
+	AMOUNT=$(shell $(GO) test -cover ./internal/rssole | cut -f 4 | cut -f 2 -d ' ' | cut -f 1 -d '.'); \
 	sed "s/100%/$$AMOUNT%/g" $@.template >$@
 
 build: rssole
