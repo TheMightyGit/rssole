@@ -39,6 +39,8 @@ $ go install github.com/TheMightyGit/rssole/cmd/rssole@latest
 
 ## Building
 
+NOTE: You can ignore the `Makefile`, that's really just a helper for me during development.
+
 To build for your local architecture/OS...
 
 ```console
