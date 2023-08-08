@@ -9,7 +9,9 @@ import (
 )
 
 func index(w http.ResponseWriter, _ *http.Request) {
-	if err := templates["base.go.html"].Execute(w, nil); err != nil {
+	if err := templates["base.go.html"].Execute(w, map[string]any{
+		"Version": Version,
+	}); err != nil {
 		log.Println(err)
 	}
 }
