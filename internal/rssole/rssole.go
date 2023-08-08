@@ -59,6 +59,8 @@ func loadTemplates() error {
 }
 
 func Start(configFilename, configReadCacheFilename, listenAddress string, updateTime time.Duration) error {
+	log.Println("RiSSOLE", Version)
+
 	err := loadTemplates()
 	if err != nil {
 		return err
