@@ -1,4 +1,3 @@
-LDFLAGS=-s -w
 GO?=go
 GO_CODE=$(shell find . -name '*.go')
 GO_TEMPLATES=$(shell find . -name '*.go.html')
