@@ -53,6 +53,7 @@ func TestUpdate_InvalidRssFeed(t *testing.T) {
 	feed := &feed{
 		URL: ts.URL,
 	}
+	feed.Init()
 
 	err := feed.Update()
 
@@ -94,6 +95,7 @@ func TestUpdate_ValidRssFeed(t *testing.T) {
 	feed := &feed{
 		URL: ts.URL,
 	}
+	feed.Init()
 
 	err := feed.Update()
 	if err != nil {
@@ -134,6 +136,7 @@ func TestUpdate_ValidScrape(t *testing.T) {
 			Link:  ".link",
 		},
 	}
+	feed.Init()
 
 	err := feed.Update()
 	if err != nil {
@@ -163,6 +166,7 @@ func TestUpdate_InvalidScrape(t *testing.T) {
 			Link:  ".link",
 		},
 	}
+	feed.Init()
 
 	err := feed.Update()
 
@@ -202,6 +206,7 @@ func TestStartTickedUpdate(t *testing.T) {
 	feed := &feed{
 		URL: ts.URL,
 	}
+	feed.Init()
 
 	feed.StartTickedUpdate(10 * time.Millisecond)
 	time.Sleep(45 * time.Millisecond)
@@ -216,29 +221,31 @@ func TestStartTickedUpdate(t *testing.T) {
 	}
 }
 
-func TestLogln(t *testing.T) {
+func TestLog(t *testing.T) {
 	feed := &feed{}
+	feed.Init()
 
-	feed.Logln("line 1")
+	feed.log.Info("line 1")
 
-	if !strings.Contains(feed.RecentLogs.String(), "line 1\n") {
+	if !strings.Contains(feed.RecentLogs.String(), "line 1") {
 		t.Fatal("expected to find line 1 in:", feed.RecentLogs.String())
 	}
 }
 
-func TestLogln_ExceedMaxLines(t *testing.T) {
+func TestLog_ExceedMaxLines(t *testing.T) {
 	feed := &feed{}
+	feed.Init()
 
 	// overflow the max by 1
 	for i := 0; i <= maxRecentLogLines+1; i++ {
-		feed.Logln("line", i, "here")
+		feed.log.Info(fmt.Sprintf("line %d here", i))
 	}
 
-	if strings.Contains(feed.RecentLogs.String(), "line 1 here\n") {
+	if strings.Contains(feed.RecentLogs.String(), "line 1 here") {
 		t.Fatal("expected not to find line 1 in:", feed.RecentLogs.String())
 	}
 
-	if !strings.Contains(feed.RecentLogs.String(), "line 2 here\n") {
+	if !strings.Contains(feed.RecentLogs.String(), "line 2 here") {
 		t.Fatal("expected to find line 2 in:", feed.RecentLogs.String())
 	}
 }

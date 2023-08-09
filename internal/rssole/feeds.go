@@ -4,11 +4,12 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"sync"
 	"time"
+
+	"golang.org/x/exp/slog"
 )
 
 type feeds struct {
@@ -43,7 +44,7 @@ func (f *feeds) delFeed(feedID string) {
 		if f.ID() != feedID {
 			newFeeds = append(newFeeds, f)
 		} else {
-			log.Println("Removed feed", f.URL)
+			slog.Info("Removed feed", "url", f.URL)
 		}
 	}
 

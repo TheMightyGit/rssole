@@ -27,6 +27,8 @@ func init() {
 	// We need the templates lodaed for endpoint tests.
 	_ = loadTemplates()
 
+	testItem1.Feed.Init()
+
 	// Set up some test feeds and items.
 	allFeeds.Feeds = append(allFeeds.Feeds, &feed{
 		URL:  "http://example.com/woo_feed",
@@ -40,6 +42,9 @@ func init() {
 			testItem1,
 		},
 	})
+
+	allFeeds.Feeds[0].Init()
+	allFeeds.Feeds[1].Init()
 
 	// zero will cause errors if UpdateTime is not set positive
 	allFeeds.UpdateTime = 10

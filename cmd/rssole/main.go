@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"log"
 	"os"
 	"time"
+
+	"golang.org/x/exp/slog"
 
 	"github.com/TheMightyGit/rssole/internal/rssole"
 )
@@ -48,7 +49,8 @@ func main() {
 
 	cfg, err := getFeedsFileConfigSection(configFilename)
 	if err != nil {
-		log.Fatal(err)
+		slog.Error("unable to get config section of config file", "filename", configFilename, "error", err)
+		os.Exit(1)
 	}
 
 	if cfg.Listen == "" {
@@ -61,6 +63,7 @@ func main() {
 
 	err = rssole.Start(configFilename, configReadCacheFilename, cfg.Listen, time.Duration(cfg.UpdateSeconds)*time.Second)
 	if err != nil {
-		log.Fatal(err)
+		slog.Error("rssole.Start exited with error", "error", err)
+		os.Exit(1)
 	}
 }
