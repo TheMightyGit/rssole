@@ -83,6 +83,11 @@ func (f *feeds) readFeedsFile(filename string) error {
 		return fmt.Errorf("error unmarshalling JSON: %w", err)
 	}
 
+	// NOTE: we must .Init() every loaded feed or logging will break
+	for _, f := range f.Feeds {
+		f.Init()
+	}
+
 	return nil
 }
 

@@ -60,7 +60,7 @@ func (f *feed) Init() {
 		Buffer:   bytes.NewBufferString(""),
 	}
 
-	th := slog.NewTextHandler(io.MultiWriter(f.RecentLogs, os.Stdout), nil)
+	th := slog.NewTextHandler(io.MultiWriter(os.Stdout, f.RecentLogs), nil)
 	f.log = slog.New(th).With("feed", f.URL)
 }
 
