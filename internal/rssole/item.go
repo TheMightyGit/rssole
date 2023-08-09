@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"crypto/md5"
 	"encoding/hex"
-	"log"
 	"net/url"
 	"strings"
 	"sync"
 
 	"github.com/k3a/html2text"
 	"github.com/mmcdole/gofeed"
+	"golang.org/x/exp/slog"
 	"golang.org/x/net/html"
 )
 
@@ -105,7 +105,7 @@ func (w *wrappedItem) Description() string {
 		doc, err := html.Parse(strings.NewReader(*desc))
 		if err != nil {
 			// failed to sanitise, so just return as is...
-			log.Println(err)
+			slog.Warn("html.Parse failed, returning unsanitised content", "error", err)
 			w.description = desc
 		} else {
 			w.descriptionImagesForDedupe = &[]string{}

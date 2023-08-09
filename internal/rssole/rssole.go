@@ -4,12 +4,12 @@ import (
 	"embed"
 	"fmt"
 	"io/fs"
-	"log"
 	"net/http"
 	"text/template"
 	"time"
 
 	"github.com/NYTimes/gziphandler"
+	"golang.org/x/exp/slog"
 )
 
 const (
@@ -59,7 +59,7 @@ func loadTemplates() error {
 }
 
 func Start(configFilename, configReadCacheFilename, listenAddress string, updateTime time.Duration) error {
-	log.Println("RiSSOLE", Version)
+	slog.Info("RiSSOLE", "version", Version)
 
 	err := loadTemplates()
 	if err != nil {
@@ -87,7 +87,7 @@ func Start(configFilename, configReadCacheFilename, listenAddress string, update
 	httpFS := http.FileServer(http.FS(wwwlibs))
 	http.Handle("/libs/", forceCache(httpFS))
 
-	log.Printf("Listening on %s\n", listenAddress)
+	slog.Info("Listening", "address", listenAddress)
 
 	if err := http.ListenAndServe(listenAddress, gziphandler.GzipHandler(http.DefaultServeMux)); err != nil {
 		return fmt.Errorf("error during ListenAndServe - %w", err)

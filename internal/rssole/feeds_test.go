@@ -82,8 +82,14 @@ func TestAddFeed(t *testing.T) {
 		UpdateTime: 1 * time.Second,
 	}
 
-	f.addFeed(&feed{})
-	f.addFeed(&feed{})
+	f1 := &feed{}
+	f1.Init()
+
+	f2 := &feed{}
+	f2.Init()
+
+	f.addFeed(f1)
+	f.addFeed(f2)
 
 	if len(f.Feeds) != 2 {
 		t.Fatal("expected 2 feeds to be added")
@@ -95,12 +101,20 @@ func TestDelFeed(t *testing.T) {
 		UpdateTime: 1 * time.Second,
 	}
 
-	fd := &feed{URL: "1"}
-	f.addFeed(fd)
-	f.addFeed(&feed{URL: "2"})
-	f.addFeed(&feed{URL: "3"})
+	fd1 := &feed{URL: "1"}
+	fd1.Init()
 
-	f.delFeed(fd.ID())
+	fd2 := &feed{URL: "2"}
+	fd2.Init()
+
+	fd3 := &feed{URL: "3"}
+	fd3.Init()
+
+	f.addFeed(fd1)
+	f.addFeed(fd2)
+	f.addFeed(fd3)
+
+	f.delFeed(fd1.ID())
 
 	if len(f.Feeds) != 2 {
 		t.Fatal("expected 2 feeds to be left")
@@ -113,8 +127,13 @@ func TestGetFeedByID(t *testing.T) {
 	}
 
 	f1 := &feed{URL: "1"}
+	f1.Init()
+
 	f2 := &feed{URL: "2"}
+	f2.Init()
+
 	f3 := &feed{URL: "3"}
+	f3.Init()
 
 	f.addFeed(f1)
 	f.addFeed(f2)

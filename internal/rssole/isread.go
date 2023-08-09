@@ -2,10 +2,11 @@ package rssole
 
 import (
 	"encoding/json"
-	"log"
 	"os"
 	"sync"
 	"time"
+
+	"golang.org/x/exp/slog"
 )
 
 type unreadLut struct {
@@ -21,11 +22,11 @@ func (u *unreadLut) loadReadLut() {
 
 	body, err := os.ReadFile(u.Filename)
 	if err != nil {
-		log.Println(err)
+		slog.Error("ReadFile failed", "filename", u.Filename, "error", err)
 	} else {
 		err = json.Unmarshal(body, &u.lut)
 		if err != nil {
-			log.Println("error unmarshall readlut:", err)
+			slog.Error("error unmarshal", "filename", u.Filename, "error", err)
 		}
 	}
 }
@@ -55,11 +56,11 @@ func (u *unreadLut) removeOldEntries(before time.Time) {
 	u.mu.Lock()
 	defer u.mu.Unlock()
 
-	log.Println("removing readcache entries before", before)
+	slog.Info("removing old readcache entries", "before", before)
 
 	for url, when := range u.lut {
 		if when.Before(before) {
-			log.Println("removing old from readcache", url, when)
+			slog.Info("removing old readcache entry", "url", url, "when", when)
 			delete(u.lut, url)
 		}
 	}
@@ -95,13 +96,13 @@ func (u *unreadLut) persistReadLut() {
 
 	jsonString, err := json.Marshal(u.lut)
 	if err != nil {
-		log.Println("error marshalling readlut:", err)
+		slog.Error("error marshaling readlut", "error", err)
 
 		return
 	}
 
 	err = os.WriteFile(u.Filename, jsonString, lutFilePerms)
 	if err != nil {
-		log.Println("error writefile", u.Filename, ":", err)
+		slog.Error("error writefile", "filename", u.Filename, "error", err)
 	}
 }

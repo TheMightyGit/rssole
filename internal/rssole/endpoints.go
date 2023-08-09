@@ -2,21 +2,24 @@ package rssole
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"net/url"
 	"strings"
+
+	"golang.org/x/exp/slog"
 )
 
-func index(w http.ResponseWriter, _ *http.Request) {
+func index(w http.ResponseWriter, req *http.Request) {
+	logger := slog.Default().With("endpoint", req.URL, "method", req.Method)
+
 	if err := templates["base.go.html"].Execute(w, map[string]any{
 		"Version": Version,
 	}); err != nil {
-		log.Println(err)
+		logger.Error("base.go.html", "error", err)
 	}
 }
 
-func feedlistCommon(w http.ResponseWriter, selected string) {
+func feedlistCommon(w http.ResponseWriter, selected string, logger *slog.Logger) {
 	allFeeds.mu.RLock()
 	defer allFeeds.mu.RUnlock()
 
@@ -35,7 +38,7 @@ func feedlistCommon(w http.ResponseWriter, selected string) {
 	allFeeds.Selected = selected
 
 	if err := templates["feedlist.go.html"].Execute(w, allFeeds); err != nil {
-		log.Println(err)
+		logger.Error("feedlist.go.html", "error", err)
 	}
 }
 
@@ -59,6 +62,8 @@ func feedsNotModified(req *http.Request) bool {
 }
 
 func feedlist(w http.ResponseWriter, req *http.Request) {
+	logger := slog.Default().With("endpoint", req.URL, "method", req.Method)
+
 	// To greatly reduce the bandwidth from polling we use Last-Modified/If-Modified-Since
 	// which is respected by htmx.
 	if feedsNotModified(req) {
@@ -68,10 +73,12 @@ func feedlist(w http.ResponseWriter, req *http.Request) {
 	}
 
 	selected := req.URL.Query().Get("selected")
-	feedlistCommon(w, selected)
+	feedlistCommon(w, selected, logger)
 }
 
 func items(w http.ResponseWriter, req *http.Request) {
+	logger := slog.Default().With("endpoint", req.URL, "method", req.Method)
+
 	feedURL := req.URL.Query().Get("url")
 
 	allFeeds.mu.RLock()
@@ -94,7 +101,7 @@ func items(w http.ResponseWriter, req *http.Request) {
 				f.mu.Lock()
 				for _, i := range f.Items() {
 					if markRead[i.MarkReadID()] {
-						log.Println("marking read", i.MarkReadID())
+						logger.Info("marking read", "MarkReadID", i.MarkReadID())
 						i.IsUnread = false
 						readLut.markRead(i.MarkReadID())
 					}
@@ -110,11 +117,11 @@ func items(w http.ResponseWriter, req *http.Request) {
 		f.mu.RLock()
 		if f.URL == feedURL {
 			if err := templates["items.go.html"].Execute(w, f); err != nil {
-				log.Println(err)
+				logger.Error("items.go.html", "error", err)
 			}
 
 			// update feed list (oob)
-			feedlistCommon(w, f.Title())
+			feedlistCommon(w, f.Title(), logger)
 		}
 		f.mu.RUnlock()
 	}
@@ -132,7 +139,7 @@ func item(w http.ResponseWriter, req *http.Request) {
 				if item.ID() == id {
 					item.IsUnread = false
 					if err := templates["item.go.html"].Execute(w, item); err != nil {
-						log.Println(err)
+						slog.Error("item.go.html", "error", err)
 					}
 
 					readLut.markRead(item.MarkReadID())
@@ -148,6 +155,8 @@ func item(w http.ResponseWriter, req *http.Request) {
 }
 
 func crudfeedGet(w http.ResponseWriter, req *http.Request) {
+	logger := slog.Default().With("endpoint", req.URL, "method", req.Method)
+
 	var f *feed
 
 	feedID := req.URL.Query().Get("feed")
@@ -156,14 +165,16 @@ func crudfeedGet(w http.ResponseWriter, req *http.Request) {
 	}
 
 	if err := templates["crudfeed.go.html"].Execute(w, f); err != nil {
-		log.Println(err)
+		logger.Error("crudfeed.go.html", "error", err)
 	}
 }
 
 func crudfeedPost(w http.ResponseWriter, req *http.Request) {
+	logger := slog.Default().With("endpoint", req.URL, "method", req.Method)
+
 	err := req.ParseForm()
 	if err != nil {
-		log.Println(err)
+		logger.Error("ParseForm", "error", err)
 	}
 
 	id := req.FormValue("id")
@@ -191,7 +202,7 @@ func crudfeedPost(w http.ResponseWriter, req *http.Request) {
 		if del != "" {
 			allFeeds.delFeed(id)
 			fmt.Fprint(w, `Deleted.`)
-			feedlistCommon(w, "_")
+			feedlistCommon(w, "_", logger)
 		} else {
 			// update
 			f := allFeeds.getFeedByID(id)
@@ -202,7 +213,7 @@ func crudfeedPost(w http.ResponseWriter, req *http.Request) {
 				f.Category = category
 				f.Scrape = scr
 				f.mu.Unlock()
-				feedlistCommon(w, f.Title())
+				feedlistCommon(w, f.Title(), logger)
 				fmt.Fprintf(w, `<div hx-get="/items?url=%s" hx-trigger="load" hx-target="#items"></div>`, url.QueryEscape(f.URL))
 			} else {
 				fmt.Fprint(w, `Not found.`)
@@ -215,13 +226,14 @@ func crudfeedPost(w http.ResponseWriter, req *http.Request) {
 			Category: category,
 			Scrape:   scr,
 		}
+		feed.Init()
 		allFeeds.addFeed(feed)
 
 		fmt.Fprintf(w, `<div hx-get="/items?url=%s" hx-trigger="load" hx-target="#items"></div>`, url.QueryEscape(feed.URL))
 	}
 	// something may have changed, so save it.
 	if err := allFeeds.saveFeedsFile(); err != nil {
-		log.Println(err)
+		logger.Error("saveFeedsFile", "error", err)
 	}
 }
 
