@@ -189,7 +189,7 @@ func (f *feed) StartTickedUpdate(updateTime time.Duration) {
 		return // already running
 	}
 
-	f.log.Info("Starting update ticker of", "duration", updateTime)
+	f.log.Info("Starting feed update ticker", "duration", updateTime)
 	f.ticker = time.NewTicker(updateTime)
 
 	go func() {
