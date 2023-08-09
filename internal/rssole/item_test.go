@@ -149,8 +149,8 @@ func TestImages_MastodonExtensionImages(t *testing.T) {
 	w := wrappedItem{
 		Item: &gofeed.Item{
 			Extensions: map[string]map[string][]ext.Extension{
-				"media": map[string][]ext.Extension{
-					"content": []ext.Extension{
+				"media": {
+					"content": {
 						{
 							Attrs: map[string]string{
 								"medium": "image",
