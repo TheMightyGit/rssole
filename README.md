@@ -1,4 +1,4 @@
-![badge](./badge.svg) ![workflow status](https://github.com/TheMightyGit/rssole/actions/workflows/build.yml/badge.svg)
+![badge](./badge.svg) ![workflow status](https://github.com/TheMightyGit/rssole/actions/workflows/build.yml/badge.svg) [![Go Report Card](https://goreportcard.com/badge/github.com/TheMightyGit/rssole)](https://goreportcard.com/report/github.com/TheMightyGit/rssole)
 
 # rssole (aka rissole)
 
