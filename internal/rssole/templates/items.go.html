@@ -56,16 +56,22 @@
         <div class="accordion-body m-0 p-2">
           <div class="w-100 d-flex justify-content-between">
             {{if .Link}}
-            <a href="{{.Link}}" class="icon-link mr-1 text-nowrap" target="_new" alt="go to story"><i class="bi-box-arrow-up-right"></i>&nbsp;link</a>
+            <div class="me-3">
+              <a href="{{.Link}}" class="icon-link mr-1 text-nowrap" target="_new" alt="go to story"><i class="bi-box-arrow-up-right"></i>&nbsp;link</a>
+            </div>
             {{end}}
             {{if .Categories}}
+            <div>
               <small>
                 {{range .Categories}}
                   <span class="badge rounded-pill text-bg-secondary">{{.}}</span>
                 {{end}}
               </small>
+            </div>
             {{end}}
-            <small class="text-nowrap">{{.PublishedParsed}}</small>
+            <div class="mb-3">
+              <small>{{.PublishedParsed}}</small>
+            </div>
           </div>
           <hr class="w-100" />
           <div hx-get="/item?id={{$item.ID}}&url={{$.URL | urlquery}}"
