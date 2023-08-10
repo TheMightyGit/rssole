@@ -4,7 +4,7 @@
 
 An RSS Reader inspired by the late Google Reader. Runs on your local machine or local network serving your RSS feeds via a clean responsive web interface.
 
-![Screenshot 2023-08-03 at 09 41 52](https://github.com/TheMightyGit/rssole/assets/888751/bf202040-2976-4570-8c2e-f6c21d61613e)
+![Screenshot 2023-08-10 at 14 21 53](https://github.com/TheMightyGit/rssole/assets/888751/a44ae604-72a4-4e92-8ed7-5580663eaf0c)
 
 A single executable with a single config file that can largely be configured within the web UI.
 
