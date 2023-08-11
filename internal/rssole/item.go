@@ -184,7 +184,7 @@ func (w *wrappedItem) Summary() string {
 		return *w.summary
 	}
 
-	plainDesc := html2text.HTML2Text(w.Description())
+	plainDesc := html2text.HTML2TextWithOptions(w.Description(), html2text.WithLinksInnerText())
 	if len(plainDesc) > maxDescriptionLength {
 		plainDesc = plainDesc[:maxDescriptionLength]
 	}
