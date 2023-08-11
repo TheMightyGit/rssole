@@ -40,13 +40,20 @@ func getFeedsFileConfigSection(filename string) (rssole.ConfigSection, error) {
 	return cfgFile.Config, nil
 }
 
-func main() {
-	var configFilename, configReadCacheFilename string
+func handleFlags(configFilename, configReadCacheFilename *string) {
+	originalUsage := flag.Usage
+	flag.Usage = func() {
+		fmt.Println("RiSSOLE version", rssole.Version)
+		fmt.Println()
+		originalUsage()
+	}
 
-	flag.StringVar(&configFilename, "c", "feeds.json", "config filename")
-	flag.StringVar(&configReadCacheFilename, "r", "readcache.json", "readcache location")
+	flag.StringVar(configFilename, "c", "feeds.json", "config filename, must be writable")
+	flag.StringVar(configReadCacheFilename, "r", "readcache.json", "readcache filename, must be writable")
 	flag.Parse()
+}
 
+func loadConfig(configFilename string) rssole.ConfigSection {
 	cfg, err := getFeedsFileConfigSection(configFilename)
 	if err != nil {
 		slog.Error("unable to get config section of config file", "filename", configFilename, "error", err)
@@ -61,7 +68,18 @@ func main() {
 		cfg.UpdateSeconds = defaultUpdateTimeSeconds
 	}
 
-	err = rssole.Start(configFilename, configReadCacheFilename, cfg.Listen, time.Duration(cfg.UpdateSeconds)*time.Second)
+	return cfg
+}
+
+func main() {
+	var configFilename, configReadCacheFilename string
+
+	handleFlags(&configFilename, &configReadCacheFilename)
+
+	cfg := loadConfig(configFilename)
+
+	// Start service
+	err := rssole.Start(configFilename, configReadCacheFilename, cfg.Listen, time.Duration(cfg.UpdateSeconds)*time.Second)
 	if err != nil {
 		slog.Error("rssole.Start exited with error", "error", err)
 		os.Exit(1)
