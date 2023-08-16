@@ -9,7 +9,6 @@ require (
 	github.com/andybalholm/cascadia v1.3.2
 	github.com/k3a/html2text v1.2.1
 	github.com/mmcdole/gofeed v1.2.1
-	golang.org/x/exp v0.0.0-20230809094429-853ea248256d
 	golang.org/x/net v0.14.0
 )
 
