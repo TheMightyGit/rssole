@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	"golang.org/x/exp/slog"
+	"log/slog"
 
 	"github.com/TheMightyGit/rssole/internal/rssole"
 )

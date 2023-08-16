@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/NYTimes/gziphandler"
-	"golang.org/x/exp/slog"
+	"log/slog"
 )
 
 const (

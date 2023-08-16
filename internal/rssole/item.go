@@ -10,8 +10,8 @@ import (
 
 	"github.com/k3a/html2text"
 	"github.com/mmcdole/gofeed"
-	"golang.org/x/exp/slog"
 	"golang.org/x/net/html"
+	"log/slog"
 )
 
 type wrappedItem struct {

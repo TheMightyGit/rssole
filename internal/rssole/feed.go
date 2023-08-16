@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/mmcdole/gofeed"
-	"golang.org/x/exp/slog"
+	"log/slog"
 )
 
 type feed struct {

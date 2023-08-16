@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"strings"
 
-	"golang.org/x/exp/slog"
+	"log/slog"
 )
 
 func index(w http.ResponseWriter, req *http.Request) {
