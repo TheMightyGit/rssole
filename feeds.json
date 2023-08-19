@@ -110,6 +110,10 @@
     {
       "url": "https://www.iflscience.com/rss/ifls-latest-rss.xml",
       "category": "Nerd"
+    },
+    {
+      "url": "https://hackaday.com/blog/feed/",
+      "category": "Nerd"
     }
   ]
 }
