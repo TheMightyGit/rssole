@@ -57,22 +57,26 @@ func TestDescription_HtmlSanitised(t *testing.T) {
 			Description: `
 <script>Should Be Deleted</script>
 <style>Should Be Deleted</style>
+<link foo="Should Be Deleted">
 <meta foo="Should Be Deleted">
 <iframe>Should Be Deleted</iframe>
 <a></a>
 <img >
-<svg >
+<svg />
+<form></form>
 `,
 		},
 	}
 	expectedHTML := `<html><head>
 
 
+
 </head><body>
 <a target="_new"></a>
 <img style="max-width: 60%;"/>
-<svg style="max-width: 60%;">
-</svg></body></html>`
+<svg style="max-width: 60%;"></svg>
+
+</body></html>`
 
 	d := w.Description()
 

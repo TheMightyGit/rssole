@@ -5,6 +5,7 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"net/url"
+	"regexp"
 	"strings"
 	"sync"
 
@@ -95,6 +96,11 @@ func (w *wrappedItem) isDescriptionImage(src string) bool {
 	return false
 }
 
+var (
+	tagsToRemoveRe  = regexp.MustCompile("script|style|link|meta|iframe|form")
+	attrsToRemoveRe = regexp.MustCompile("style|class|hx-.*|data-.*|srcset|width|height|sizes|loading|decoding|target")
+)
+
 func (w *wrappedItem) Description() string {
 	w.onceDescription.Do(func() {
 		// start with whichever is longer out of .Description or .Content
@@ -119,12 +125,21 @@ func (w *wrappedItem) Description() string {
 				// fmt.Println(n)
 				if n.Type == html.ElementNode {
 					// fmt.Println(n.Data)
-					if n.Data == "script" || n.Data == "style" || n.Data == "link" || n.Data == "meta" || n.Data == "iframe" {
+
+					if tagsToRemoveRe.MatchString(n.Data) {
 						// fmt.Println("removing", n.Data, "tag")
 						toDelete = append(toDelete, n)
 
 						return
 					}
+
+					allowedAttrs := []html.Attribute{}
+					for i := range n.Attr {
+						if !attrsToRemoveRe.MatchString(n.Attr[i].Key) {
+							allowedAttrs = append(allowedAttrs, n.Attr[i])
+						}
+					}
+					n.Attr = allowedAttrs
 
 					if n.Data == "a" {
 						// fmt.Println("making", n.Data, "tag target new tab")
