@@ -77,6 +77,9 @@ func (w *wrappedItem) Images() []string {
 }
 
 func (w *wrappedItem) isDescriptionImage(src string) bool {
+	// strip anything after ? to get rid of query string part
+	srcNoQueryString := strings.Split(src, "?")[0]
+
 	if w.descriptionImagesForDedupe == nil {
 		// force lazy load if it hasn't already
 		_ = w.Description()
@@ -84,7 +87,7 @@ func (w *wrappedItem) isDescriptionImage(src string) bool {
 
 	for _, v := range *w.descriptionImagesForDedupe {
 		// fmt.Println(v, "==", src)
-		if v == src {
+		if v == srcNoQueryString {
 			return true
 		}
 	}
@@ -151,7 +154,9 @@ func (w *wrappedItem) Description() string {
 						// images that also appear in the content.
 						for _, a := range n.Attr {
 							if a.Key == "src" {
-								*w.descriptionImagesForDedupe = append(*w.descriptionImagesForDedupe, a.Val)
+								// strip anything after ? to get rid of query string part
+								bits := strings.Split(a.Val, "?")
+								*w.descriptionImagesForDedupe = append(*w.descriptionImagesForDedupe, bits[0])
 							}
 						}
 					}

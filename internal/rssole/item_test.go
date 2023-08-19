@@ -125,6 +125,26 @@ func TestImages_ShouldDedupe(t *testing.T) {
 	}
 }
 
+func TestImages_ShouldDedupeIgnoringAllQueryStrings(t *testing.T) {
+	w := wrappedItem{
+		Item: &gofeed.Item{
+			Image: &gofeed.Image{
+				URL: "this_image_is_present_in_both?also_ignores_query_string_here=7",
+			},
+			Description: `
+<img src='this_image_is_present_in_both?query_string_is_ignored=1' />
+<svg src='this_svg_is_present_only_in_content' />
+			`,
+		},
+	}
+
+	images := w.Images()
+
+	if len(images) != 0 {
+		t.Error("expected image list to be zero as it should be de-duped")
+	}
+}
+
 func TestImages_ShouldNotDedupe(t *testing.T) {
 	w := wrappedItem{
 		Item: &gofeed.Item{
