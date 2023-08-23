@@ -1,4 +1,25 @@
 <div>
+  {{if .Enclosures}}
+    <ul class="fs-5">
+    {{range .Enclosures}}
+      {{if not (eq (slice .Type 0 6) "image/")}}
+        {{if eq (slice .Type 0 6) "audio/"}}
+          <li>
+            <a href="{{.URL}}"><i class="bi-file-music-fill"></i> {{.Type}}</a><br />
+            <audio controls><source src="{{.URL}}" type="{{.Type}}"></audio>
+          </li>
+        {{else if eq (slice .Type 0 6) "video/"}}
+          <li>
+            <a href="{{.URL}}"><i class="bi-file-play-fill"></i> {{.Type}}</a><br />
+            <video controls><source src="{{.URL}}" type="{{.Type}}"></video>
+          </li>
+        {{else}}
+          <li><a href="{{.URL}}"><i class="bi-file-binary-fill"></i> {{.Type}}</a></li>
+        {{end}}
+      {{end}}
+    {{end}}
+    </ul>
+  {{end}}
   {{range .Images}}
     <img style="max-width: 40%;" src="{{.}}" />
   {{end}}
