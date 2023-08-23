@@ -72,6 +72,13 @@ func (w *wrappedItem) Images() []string {
 		}
 	}
 
+	// also add images found in enclosures
+	for _, enclosure := range w.Enclosures {
+		if strings.HasPrefix(enclosure.Type, "image/") {
+			images = append(images, enclosure.URL)
+		}
+	}
+
 	w.images = &images
 
 	return *w.images
