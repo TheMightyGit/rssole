@@ -114,6 +114,30 @@
     {
       "url": "https://hackaday.com/blog/feed/",
       "category": "Nerd"
+    },
+    {
+      "url": "https://rss.art19.com/apology-line",
+      "category": "Podcast"
+    },
+    {
+      "url": "https://media.rss.com/badluckclub/feed.xml",
+      "category": "Podcast"
+    },
+    {
+      "url": "https://media.rss.com/videostorejunkies/feed.xml",
+      "category": "Podcast"
+    },
+    {
+      "url": "https://nesslabs.com/feed",
+      "category": "Podcast"
+    },
+    {
+      "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCqZQJ4600a9wIfMPbYc60OQ",
+      "category": "Podcast"
+    },
+    {
+      "url": "http://feeds.feedburner.com/tedtalks_video",
+      "category": "Podcast"
     }
   ]
 }

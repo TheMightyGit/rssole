@@ -72,6 +72,18 @@ func (w *wrappedItem) Images() []string {
 		}
 	}
 
+	// youtube style media:group
+	group := w.Item.Extensions["media"]["group"]
+	if len(group) > 0 {
+		thumbnail := group[0].Children["thumbnail"]
+		if len(thumbnail) > 0 {
+			url := thumbnail[0].Attrs["url"]
+			if url != "" {
+				images = append(images, url)
+			}
+		}
+	}
+
 	// also add images found in enclosures
 	for _, enclosure := range w.Enclosures {
 		if strings.HasPrefix(enclosure.Type, "image/") {
@@ -115,6 +127,17 @@ func (w *wrappedItem) Description() string {
 		desc := &w.Item.Description
 		if len(w.Item.Content) > len(*desc) {
 			desc = &w.Item.Content
+		}
+
+		if len(*desc) == 0 { // uh-ho, no description - is it hidden somewhere else?
+			// youtube style media:group
+			group := w.Item.Extensions["media"]["group"]
+			if len(group) > 0 {
+				description := group[0].Children["description"]
+				if len(description) > 0 {
+					desc = &description[0].Value
+				}
+			}
 		}
 
 		// try and sanitise any html
