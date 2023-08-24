@@ -32,20 +32,17 @@ func (u *unreadLut) loadReadLut() {
 }
 
 const (
-	minusSixtyDays  = -60 * time.Hour * 24 // 60 days ago
-	updateFrequency = 6 * time.Hour
+	minusTwoDays    = -2 * time.Hour * 24 // 2 days ago
+	updateFrequency = 1 * time.Hour
 )
 
 func (u *unreadLut) startCleanupTicker() {
-	ago := minusSixtyDays
-	before := time.Now().Add(ago)
-	readLut.removeOldEntries(before)
-	readLut.persistReadLut()
+	ago := minusTwoDays
 
 	go func() {
 		ticker := time.NewTicker(updateFrequency)
 		for range ticker.C {
-			before = time.Now().Add(ago)
+			before := time.Now().Add(ago)
 			readLut.removeOldEntries(before)
 			readLut.persistReadLut()
 		}
@@ -86,6 +83,12 @@ func (u *unreadLut) markRead(url string) {
 	u.lut[url] = time.Now()
 
 	updateLastmodified()
+}
+
+func (u *unreadLut) extendLifeIfFound(url string) {
+	if !u.isUnread(url) {
+		u.markRead(url)
+	}
 }
 
 const lutFilePerms = 0o644

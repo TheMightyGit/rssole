@@ -179,6 +179,14 @@ func (f *feed) Update() error {
 
 	f.log.Info("Finished updating feed")
 
+	// extend the life of anything valid still in the
+	// read cache.
+	for _, wi := range f.wrappedItems {
+		readLut.extendLifeIfFound(wi.MarkReadID())
+	}
+
+	readLut.persistReadLut()
+
 	updateLastmodified()
 
 	return nil
