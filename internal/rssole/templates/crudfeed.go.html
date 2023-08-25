@@ -94,6 +94,10 @@
 
   {{if .}}
   <div role="tabpanel" id="logs" class="tab-pane">
+    {{if .Scrape}}
+    {{else}}
+    <a target="_new" href="https://validator.w3.org/feed/check.cgi?url={{.URL}}">W3C Feed Validator</a>
+    {{end}}
     <pre class="border border-secondary">{{.RecentLogs}}</pre>
   </div>
   {{end}}
