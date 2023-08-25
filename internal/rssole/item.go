@@ -122,7 +122,7 @@ var (
 
 func (w *wrappedItem) Description() string {
 	w.onceDescription.Do(func() {
-		// create a list of descroptions from various sources,
+		// create a list of descriptions from various sources,
 		// we'll pick the longest later on.
 
 		descSources := []*string{
