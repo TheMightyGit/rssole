@@ -122,21 +122,38 @@ var (
 
 func (w *wrappedItem) Description() string {
 	w.onceDescription.Do(func() {
-		// start with whichever is longer out of .Description or .Content
-		// (sites vary about which they use, we'll take the biggest)
-		desc := &w.Item.Description
-		if len(w.Item.Content) > len(*desc) {
-			desc = &w.Item.Content
+		// create a list of descriptions from various sources,
+		// we'll pick the longest later on.
+
+		descSources := []*string{
+			&w.Item.Description,
+			&w.Item.Content,
 		}
 
-		if len(*desc) == 0 { // uh-ho, no description - is it hidden somewhere else?
-			// youtube style media:group
-			group := w.Item.Extensions["media"]["group"]
-			if len(group) > 0 {
-				description := group[0].Children["description"]
-				if len(description) > 0 {
-					desc = &description[0].Value
-				}
+		// youtube style media:group ?
+		group := w.Item.Extensions["media"]["group"]
+		if len(group) > 0 {
+			description := group[0].Children["description"]
+			if len(description) > 0 {
+				descSources = append(descSources, &description[0].Value)
+			}
+		}
+
+		// IFLS a10 ?
+		a10content := w.Item.Extensions["a10"]["content"]
+		if len(a10content) > 0 {
+			description := a10content[0].Value
+			if len(description) > 0 {
+				descSources = append(descSources, &description)
+			}
+		}
+
+		var desc *string
+
+		// pick the longest description as the story content
+		for _, d := range descSources {
+			if desc == nil || len(*desc) < len(*d) {
+				desc = d
 			}
 		}
 
