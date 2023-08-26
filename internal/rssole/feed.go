@@ -44,6 +44,7 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+
 	gmtTimeZoneLocation = loc
 }
 
@@ -145,7 +146,7 @@ func (f *feed) Update() error {
 
 		req, err := http.NewRequest(http.MethodGet, f.URL, nil)
 		if err != nil {
-			return err
+			return fmt.Errorf("cannot create new request: %w", err)
 		}
 		req.Header.Set("User-Agent", "Gofeed/1.0")
 
@@ -159,7 +160,7 @@ func (f *feed) Update() error {
 		resp, err := client.Do(req)
 
 		if err != nil {
-			return err
+			return fmt.Errorf("unable to do request: %w", err)
 		}
 
 		if resp != nil {
