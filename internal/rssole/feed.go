@@ -183,6 +183,11 @@ func (f *feed) Update() error {
 			}
 		}
 
+		feed, err = fp.Parse(resp.Body)
+		if err != nil {
+			return fmt.Errorf("rss parseurl %s %w", f.URL, err)
+		}
+
 		if eTag := resp.Header.Get("Etag"); eTag != "" {
 			f.eTag = eTag
 		}
@@ -194,10 +199,6 @@ func (f *feed) Update() error {
 			}
 		}
 
-		feed, err = fp.Parse(resp.Body)
-		if err != nil {
-			return fmt.Errorf("rss parseurl %s %w", f.URL, err)
-		}
 	}
 
 	f.mu.Lock()
