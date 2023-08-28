@@ -1,0 +1,17 @@
+<form hx-post="/settings" hx-target="#items">
+  <div>
+    <label for="formListen" class="text-primary"><b>Listen</b></label>
+    <input readonly="true" type="text" class="form-control" id="formListen" name="listen" value="{{.Listen}}">
+  </div>
+  <div>
+    <label for="formUpdateSeconds" class="text-primary"><b>Update Seconds</b></label>
+    <input type="text" class="form-control" id="formUpdateSeconds" name="update_seconds" value="{{.UpdateSeconds}}">
+  </div>
+  <div class="mt-3">
+    <button
+      type="submit"
+      class="btn btn-primary">
+      Update
+    </button>
+  </div>
+</form>

@@ -135,3 +135,13 @@ func (f *feeds) BeginFeedUpdates() {
 		feed.StartTickedUpdate(f.UpdateTime)
 	}
 }
+
+func (f *feeds) ChangeTickedUpdate(d time.Duration) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
+	f.Config.UpdateSeconds = int(d.Seconds())
+	for _, feed := range f.Feeds {
+		feed.ChangeTickedUpdate(d)
+	}
+}
