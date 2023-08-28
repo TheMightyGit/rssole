@@ -40,8 +40,10 @@ var (
 
 	gmtTimeZoneLocation *time.Location
 
+	httpClientTimeout = 30 * time.Second
+
 	httpClient = &http.Client{
-		Timeout: 30 * time.Second,
+		Timeout: httpClientTimeout,
 	}
 )
 
@@ -203,7 +205,6 @@ func (f *feed) Update() error {
 				f.lastModified = parsed
 			}
 		}
-
 	}
 
 	f.mu.Lock()
