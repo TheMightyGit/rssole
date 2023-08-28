@@ -35,9 +35,15 @@ type feed struct {
 	lastModified time.Time
 }
 
-var ErrNotModified = errors.New("not modified")
+var (
+	ErrNotModified = errors.New("not modified")
 
-var gmtTimeZoneLocation *time.Location
+	gmtTimeZoneLocation *time.Location
+
+	httpClient = &http.Client{
+		Timeout: 30 * time.Second,
+	}
+)
 
 func init() {
 	loc, err := time.LoadLocation("GMT")
@@ -156,8 +162,7 @@ func (f *feed) Update() error {
 
 		req.Header.Set("If-Modified-Since", f.lastModified.In(gmtTimeZoneLocation).Format(time.RFC1123))
 
-		client := &http.Client{} // FIXME: better defaults!
-		resp, err := client.Do(req)
+		resp, err := httpClient.Do(req)
 
 		if err != nil {
 			return fmt.Errorf("unable to do request: %w", err)
