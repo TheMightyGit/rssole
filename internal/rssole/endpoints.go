@@ -11,6 +11,8 @@ import (
 	"golang.org/x/exp/slog"
 )
 
+const MinUpdateSeconds = 900
+
 func index(w http.ResponseWriter, req *http.Request) {
 	logger := slog.Default().With("endpoint", req.URL, "method", req.Method)
 
@@ -256,6 +258,8 @@ func settingsGet(w http.ResponseWriter, req *http.Request) {
 }
 
 func settingsPost(w http.ResponseWriter, req *http.Request) {
+	defer settingsGet(w, req)
+
 	logger := slog.Default().With("endpoint", req.URL, "method", req.Method)
 
 	err := req.ParseForm()
@@ -263,25 +267,28 @@ func settingsPost(w http.ResponseWriter, req *http.Request) {
 		logger.Error("ParseForm", "error", err)
 	}
 
-	update_seconds, err := strconv.Atoi(req.FormValue("update_seconds"))
+	updateSeconds, err := strconv.Atoi(req.FormValue("update_seconds"))
 	if err != nil {
 		logger.Error("Cannot parse update_seconds", "error", err)
+
 		return
 	}
 
-	if update_seconds < 900 {
+	if updateSeconds < MinUpdateSeconds {
 		logger.Error("Error, update_seconds is below 900")
+
 		return
 	}
 
-	if update_seconds != allFeeds.Config.UpdateSeconds {
-		allFeeds.ChangeTickedUpdate(time.Duration(update_seconds) * time.Second)
+	if updateSeconds != allFeeds.Config.UpdateSeconds {
+		allFeeds.ChangeTickedUpdate(time.Duration(updateSeconds) * time.Second)
 	}
 
 	// something may have changed, so save it.
 	if err := allFeeds.saveFeedsFile(); err != nil {
 		logger.Error("saveFeedsFile", "error", err)
 	}
+
 }
 
 func settings(w http.ResponseWriter, req *http.Request) {
