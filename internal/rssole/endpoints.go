@@ -288,7 +288,6 @@ func settingsPost(w http.ResponseWriter, req *http.Request) {
 	if err := allFeeds.saveFeedsFile(); err != nil {
 		logger.Error("saveFeedsFile", "error", err)
 	}
-
 }
 
 func settings(w http.ResponseWriter, req *http.Request) {
