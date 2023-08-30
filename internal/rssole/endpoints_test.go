@@ -48,6 +48,9 @@ func init() {
 
 	// zero will cause errors if UpdateTime is not set positive
 	allFeeds.UpdateTime = 10
+
+	allFeeds.Config.Listen = "1.2.3.4:5678"
+	allFeeds.Config.UpdateSeconds = 987
 }
 
 var readCacheDir string
@@ -548,5 +551,68 @@ func TestCrudFeed_Post_UpdateRssFeed_WithScrape(t *testing.T) {
 
 	if updatedFeed.Scrape.Link != "Scrape Link CSS Selector" {
 		t.Error("expected new feed scrape link to match, got:", updatedFeed.Scrape.Link)
+	}
+}
+
+func TestSettings_Get(t *testing.T) {
+	defer setUpTearDown(t)(t)
+
+	req, err := http.NewRequest(http.MethodGet, "/settings", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rr := httptest.NewRecorder()
+	handler := http.HandlerFunc(settings)
+	handler.ServeHTTP(rr, req)
+
+	if status := rr.Code; status != http.StatusOK {
+		t.Errorf("handler returned wrong status code: got %v want %v",
+			status, http.StatusOK)
+	}
+
+	for _, expectedToFind := range []string{
+		"1.2.3.4:5678",
+		"987",
+	} {
+		if !strings.Contains(rr.Body.String(), expectedToFind) {
+			t.Errorf("handler returned page without expected content: got %v could not find '%v'",
+				rr.Body.String(), expectedToFind)
+		}
+	}
+}
+
+func TestSettings_Post(t *testing.T) {
+	defer setUpTearDown(t)(t)
+
+	data := url.Values{}
+	data.Add("update_seconds", "999")
+
+	body := strings.NewReader(data.Encode())
+
+	req, err := http.NewRequest(http.MethodPost, "/settings", body)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+
+	rr := httptest.NewRecorder()
+	handler := http.HandlerFunc(settings)
+	handler.ServeHTTP(rr, req)
+
+	if status := rr.Code; status != http.StatusOK {
+		t.Errorf("handler returned wrong status code: got %v want %v",
+			status, http.StatusOK)
+	}
+
+	for _, expectedToFind := range []string{
+		"1.2.3.4:5678",
+		"999", // updated
+	} {
+		if !strings.Contains(rr.Body.String(), expectedToFind) {
+			t.Errorf("handler returned page without expected content: got %v could not find '%v'",
+				rr.Body.String(), expectedToFind)
+		}
 	}
 }

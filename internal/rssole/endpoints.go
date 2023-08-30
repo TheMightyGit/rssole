@@ -4,10 +4,14 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
+	"time"
 
 	"golang.org/x/exp/slog"
 )
+
+const MinUpdateSeconds = 900
 
 func index(w http.ResponseWriter, req *http.Request) {
 	logger := slog.Default().With("endpoint", req.URL, "method", req.Method)
@@ -242,5 +246,54 @@ func crudfeed(w http.ResponseWriter, req *http.Request) {
 		crudfeedGet(w, req)
 	} else if req.Method == http.MethodPost {
 		crudfeedPost(w, req)
+	}
+}
+
+func settingsGet(w http.ResponseWriter, req *http.Request) {
+	logger := slog.Default().With("endpoint", req.URL, "method", req.Method)
+
+	if err := templates["settings.go.html"].Execute(w, allFeeds.Config); err != nil {
+		logger.Error("settings.go.html", "error", err)
+	}
+}
+
+func settingsPost(w http.ResponseWriter, req *http.Request) {
+	defer settingsGet(w, req)
+
+	logger := slog.Default().With("endpoint", req.URL, "method", req.Method)
+
+	err := req.ParseForm()
+	if err != nil {
+		logger.Error("ParseForm", "error", err)
+	}
+
+	updateSeconds, err := strconv.Atoi(req.FormValue("update_seconds"))
+	if err != nil {
+		logger.Error("Cannot parse update_seconds", "error", err)
+
+		return
+	}
+
+	if updateSeconds < MinUpdateSeconds {
+		logger.Error("Error, update_seconds is below 900")
+
+		return
+	}
+
+	if updateSeconds != allFeeds.Config.UpdateSeconds {
+		allFeeds.ChangeTickedUpdate(time.Duration(updateSeconds) * time.Second)
+	}
+
+	// something may have changed, so save it.
+	if err := allFeeds.saveFeedsFile(); err != nil {
+		logger.Error("saveFeedsFile", "error", err)
+	}
+}
+
+func settings(w http.ResponseWriter, req *http.Request) {
+	if req.Method == http.MethodGet {
+		settingsGet(w, req)
+	} else if req.Method == http.MethodPost {
+		settingsPost(w, req)
 	}
 }

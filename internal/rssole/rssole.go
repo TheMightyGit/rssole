@@ -82,6 +82,7 @@ func Start(configFilename, configReadCacheFilename, listenAddress string, update
 	http.HandleFunc("/items", items)
 	http.HandleFunc("/item", item)
 	http.HandleFunc("/crudfeed", crudfeed)
+	http.HandleFunc("/settings", settings)
 
 	// As the static files won't change we force the browser to cache them.
 	httpFS := http.FileServer(http.FS(wwwlibs))

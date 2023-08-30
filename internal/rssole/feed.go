@@ -292,6 +292,13 @@ func (f *feed) StartTickedUpdate(updateTime time.Duration) {
 	}()
 }
 
+func (f *feed) ChangeTickedUpdate(d time.Duration) {
+	if f.ticker != nil {
+		f.log.Info("Update ticker", "update", d)
+		f.ticker.Reset(d)
+	}
+}
+
 func (f *feed) StopTickedUpdate() {
 	if f.ticker != nil {
 		f.log.Info("Stopped update ticker")

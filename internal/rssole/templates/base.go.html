@@ -23,15 +23,41 @@
 <div class="container-fluid">
   <div class="row align-items-start">
     <div class="col col-12 col-sm-3 m-0 p-1">
+
+      <div class="d-flex">
+        <div class="pe-1">
+          <button
+            hx-get="/settings"
+            hx-target="#items"
+            hx-swap="innerHTML"
+            class="btn btn-light p-1 text-nowrap">
+            <i class="bi-gear-fill"></i>
+          </button>
+        </div>
+        <div class="ps-1">
+          <button
+            hx-get="/crudfeed"
+            hx-target="#items"
+            hx-swap="innerHTML"
+            class="btn btn-light p-1 text-nowrap">
+            <i class="bi-plus-circle"></i>
+          </button>
+        </div>
+        <div class="p-0 flex-grow-1 text-end text-truncate">
+          <a href="https://github.com/TheMightyGit/rssole" target="_new" class="btn text-secondary fs-6">RiSSOLE {{.Version}}</a>
+        </div>
+      </div>
+
+      <hr class="p-0 m-0" />
+
       <div hx-get="/feeds" hx-trigger="load" hx-swap="outerHTML" id="feeds">
         {{template "components/spinner" .}}
       </div>
+
+      <hr class="p-0 m-0" />
     </div>
     <div class="col col-12 col-sm-9 m-0 p-1">
       <div id="items">
-        <p class="text-end">
-          <small><a href="https://github.com/TheMightyGit/rssole" target="_new" class="btn text-secondary">RiSSOLE {{.Version}}</a></small>
-        </p>
       </div>
     </div>
   </div>
