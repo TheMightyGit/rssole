@@ -100,11 +100,11 @@ Now open your browser on `<hostname/ip>:8090` e.g. http://localhost:8090
 ## Network Options
 
 By default it binds to `0.0.0.0:8090`, so it will be available on all network adaptors
-on your host. You can change this in the `feeds.json` config file.
+on your host. You can change this in the `rssole.json` config file.
 
 I run rssole within a private network so this is good enough for me so that I can run it once but
 access it from all my devices. If you run this on an alien network then someone else can mess with
-the UI (there's no protection at all on it) - change the `listen` value in `feeds.json` to
+the UI (there's no protection at all on it) - change the `listen` value in `rssole.json` to
 `127.0.0.1:8090` if you only want it to serve locally.
 
 If you want to protect rssole behind a username and password or encryption (because you want rssole wide
@@ -120,12 +120,12 @@ directly to rssole as I don't need it. Maybe someone will create a docker image 
 $ ./rssole -h
 Usage of ./rssole:
   -c string
-        config filename (default "feeds.json")
+        config filename (default "rssole.json")
   -r string
-        readcache location (default "readcache.json")
+        readcache location (default "rssole_readcache.json")
 ```
 
-### `feeds.json`
+### `rssole.json`
 
 There are two types of feed definition...
 
