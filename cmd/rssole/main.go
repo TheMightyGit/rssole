@@ -17,10 +17,10 @@ const (
 	defaultListenAddress     = "0.0.0.0:8090"
 	defaultUpdateTimeSeconds = 300
 
-	defaultConfigFilename          = "rssole.json"
-	defaultConfigReadCacheFilename = "rssole_readcache.json"
-	oldDefaultConfigFilename       = "feeds.json"
-	oldDefaultReadCacheFilename    = "readcache.json"
+	defaultConfigFilename       = "rssole.json"
+	defaultReadCacheFilename    = "rssole_readcache.json"
+	oldDefaultConfigFilename    = "feeds.json"
+	oldDefaultReadCacheFilename = "readcache.json"
 )
 
 type configFile struct {
@@ -55,7 +55,7 @@ func handleFlags(configFilename, configReadCacheFilename *string) {
 	}
 
 	flag.StringVar(configFilename, "c", defaultConfigFilename, "config filename, must be writable")
-	flag.StringVar(configReadCacheFilename, "r", defaultConfigReadCacheFilename, "readcache filename, must be writable")
+	flag.StringVar(configReadCacheFilename, "r", defaultReadCacheFilename, "readcache filename, must be writable")
 	flag.Parse()
 }
 
