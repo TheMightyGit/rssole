@@ -1,5 +1,5 @@
 <div hx-get="/feeds?{{if .Selected}}selected={{.Selected}}{{end}}" id="feeds" hx-trigger="every 30s" {{if .Selected}}hx-swap-oob="true"{{end}}>
-  {{range $category, $feeds := .FeedTree}}
+  {{range $category, $feeds := .Feeds.FeedTree}}
   <small><small>{{$category}}</small></small>
   <div class="list-group list-group-flush">
     {{range $feeds}}

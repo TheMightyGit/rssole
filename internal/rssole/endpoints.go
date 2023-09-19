@@ -39,9 +39,10 @@ func feedlistCommon(w http.ResponseWriter, selected string, logger *slog.Logger)
 		}
 	}()
 
-	allFeeds.Selected = selected
-
-	if err := templates["feedlist.go.html"].Execute(w, allFeeds); err != nil {
+	if err := templates["feedlist.go.html"].Execute(w, map[string]any{
+		"Selected": selected,
+		"Feeds":    allFeeds,
+	}); err != nil {
 		logger.Error("feedlist.go.html", "error", err)
 	}
 }

@@ -16,7 +16,6 @@ type feeds struct {
 	Config     ConfigSection `json:"config"`
 	Feeds      []*feed       `json:"feeds"`
 	UpdateTime time.Duration `json:"-"`
-	Selected   string        `json:"-"` // FIXME: Ugh! viewer state held here is bad as we coud have multiple simultaneous viewers.
 	mu         sync.RWMutex
 	filename   string
 }
