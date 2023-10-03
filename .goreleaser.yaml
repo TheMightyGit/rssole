@@ -28,7 +28,7 @@ archives:
     - goos: windows
       format: zip
     files:
-      - feeds.json
+      - rssole.json
 
 brews:
   -
