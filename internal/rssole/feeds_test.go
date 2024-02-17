@@ -19,7 +19,7 @@ func feedsSetUpTearDown(_ *testing.T) func(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	return func(t *testing.T) {
+	return func(_ *testing.T) {
 		os.RemoveAll(tempDir)
 	}
 }

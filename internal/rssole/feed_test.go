@@ -37,7 +37,7 @@ func feedSetUpTearDown(_ *testing.T) func(t *testing.T) {
 		Filename: file.Name(),
 	}
 
-	return func(t *testing.T) {
+	return func(_ *testing.T) {
 		os.RemoveAll(readCacheDir)
 	}
 }
@@ -45,7 +45,7 @@ func feedSetUpTearDown(_ *testing.T) func(t *testing.T) {
 func TestUpdate_InvalidRssFeed(t *testing.T) {
 	defer feedSetUpTearDown(t)(t)
 
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		fmt.Fprintln(w, "Invalid RSS Feed")
 	}))
 	defer ts.Close()
@@ -65,7 +65,7 @@ func TestUpdate_InvalidRssFeed(t *testing.T) {
 func TestUpdate_ValidRssFeed(t *testing.T) {
 	defer feedSetUpTearDown(t)(t)
 
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		fmt.Fprintln(w, `<?xml version="1.0" encoding="UTF-8" ?>
 <rss version="2.0">
 <channel>
@@ -108,7 +108,7 @@ func TestUpdate_ValidRssFeed(t *testing.T) {
 }
 
 func TestUpdate_ValidScrape(t *testing.T) {
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		fmt.Fprintln(w, `<html>
 <body>
 	<div class="item">
@@ -149,7 +149,7 @@ func TestUpdate_ValidScrape(t *testing.T) {
 }
 
 func TestUpdate_InvalidScrape(t *testing.T) {
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 	}))
 	defer ts.Close()
@@ -184,7 +184,7 @@ func TestStartTickedUpdate(t *testing.T) {
 
 	updateCount := 0
 
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		updateCount++
 
 		fmt.Fprintln(w, `<?xml version="1.0" encoding="UTF-8" ?>

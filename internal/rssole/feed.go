@@ -156,6 +156,7 @@ func (f *feed) Update() error {
 		if err != nil {
 			return fmt.Errorf("cannot create new request: %w", err)
 		}
+
 		req.Header.Set("User-Agent", "Gofeed/1.0")
 
 		if f.eTag != "" {
@@ -229,6 +230,7 @@ func (f *feed) Update() error {
 		if f.wrappedItems[i].IsUnread && !f.wrappedItems[j].IsUnread {
 			return true
 		}
+
 		if !f.wrappedItems[i].IsUnread && f.wrappedItems[j].IsUnread {
 			return false
 		}

@@ -1,14 +1,14 @@
 module github.com/TheMightyGit/rssole
 
-go 1.20
+go 1.22
 
 require (
 	github.com/NYTimes/gziphandler v1.1.1
 	github.com/andybalholm/cascadia v1.3.2
 	github.com/k3a/html2text v1.2.1
 	github.com/mmcdole/gofeed v1.2.1
-	golang.org/x/exp v0.0.0-20231206192017-f3f8817b8deb
-	golang.org/x/net v0.19.0
+	golang.org/x/exp v0.0.0-20240213143201-ec583247a57a
+	golang.org/x/net v0.21.0
 )
 
 require (

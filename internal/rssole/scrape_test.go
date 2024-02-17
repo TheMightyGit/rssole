@@ -8,7 +8,7 @@ import (
 )
 
 func TestScrape(t *testing.T) {
-	ts1 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	ts1 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		fmt.Fprintln(w, `<html>
 <body>
 	<div class="item">
@@ -24,7 +24,7 @@ func TestScrape(t *testing.T) {
 	}))
 	defer ts1.Close()
 
-	ts2 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	ts2 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		fmt.Fprintln(w, `<html>
 <body>
 	<div class="item">

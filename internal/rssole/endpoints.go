@@ -242,14 +242,6 @@ func crudfeedPost(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func crudfeed(w http.ResponseWriter, req *http.Request) {
-	if req.Method == http.MethodGet {
-		crudfeedGet(w, req)
-	} else if req.Method == http.MethodPost {
-		crudfeedPost(w, req)
-	}
-}
-
 func settingsGet(w http.ResponseWriter, req *http.Request) {
 	logger := slog.Default().With("endpoint", req.URL, "method", req.Method)
 
@@ -288,13 +280,5 @@ func settingsPost(w http.ResponseWriter, req *http.Request) {
 	// something may have changed, so save it.
 	if err := allFeeds.saveFeedsFile(); err != nil {
 		logger.Error("saveFeedsFile", "error", err)
-	}
-}
-
-func settings(w http.ResponseWriter, req *http.Request) {
-	if req.Method == http.MethodGet {
-		settingsGet(w, req)
-	} else if req.Method == http.MethodPost {
-		settingsPost(w, req)
 	}
 }

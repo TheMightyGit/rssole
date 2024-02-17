@@ -75,7 +75,7 @@ func setUpTearDown(_ *testing.T) func(t *testing.T) {
 		Filename: file.Name(),
 	}
 
-	return func(t *testing.T) {
+	return func(_ *testing.T) {
 		os.RemoveAll(readCacheDir)
 	}
 }
@@ -324,7 +324,7 @@ func TestCrudFeed_Get(t *testing.T) {
 	}
 
 	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(crudfeed)
+	handler := http.HandlerFunc(crudfeedGet)
 	handler.ServeHTTP(rr, req)
 
 	if status := rr.Code; status != http.StatusOK {
@@ -353,7 +353,7 @@ func TestCrudFeed_Post_AddRssFeed(t *testing.T) {
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
 	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(crudfeed)
+	handler := http.HandlerFunc(crudfeedPost)
 	handler.ServeHTTP(rr, req)
 
 	if status := rr.Code; status != http.StatusOK {
@@ -406,7 +406,7 @@ func TestCrudFeed_Post_AddRssFeed_WithScrape(t *testing.T) {
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
 	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(crudfeed)
+	handler := http.HandlerFunc(crudfeedPost)
 	handler.ServeHTTP(rr, req)
 
 	if status := rr.Code; status != http.StatusOK {
@@ -473,7 +473,7 @@ func TestCrudFeed_Post_DeleteRssFeed(t *testing.T) {
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
 	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(crudfeed)
+	handler := http.HandlerFunc(crudfeedPost)
 	handler.ServeHTTP(rr, req)
 
 	if status := rr.Code; status != http.StatusOK {
@@ -511,7 +511,7 @@ func TestCrudFeed_Post_UpdateRssFeed_WithScrape(t *testing.T) {
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
 	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(crudfeed)
+	handler := http.HandlerFunc(crudfeedPost)
 	handler.ServeHTTP(rr, req)
 
 	if status := rr.Code; status != http.StatusOK {
@@ -563,7 +563,7 @@ func TestSettings_Get(t *testing.T) {
 	}
 
 	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(settings)
+	handler := http.HandlerFunc(settingsGet)
 	handler.ServeHTTP(rr, req)
 
 	if status := rr.Code; status != http.StatusOK {
@@ -598,7 +598,7 @@ func TestSettings_Post(t *testing.T) {
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
 	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(settings)
+	handler := http.HandlerFunc(settingsPost)
 	handler.ServeHTTP(rr, req)
 
 	if status := rr.Code; status != http.StatusOK {

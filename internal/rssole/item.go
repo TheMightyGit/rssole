@@ -124,7 +124,6 @@ func (w *wrappedItem) Description() string {
 	w.onceDescription.Do(func() {
 		// create a list of descriptions from various sources,
 		// we'll pick the longest later on.
-
 		descSources := []*string{
 			&w.Item.Description,
 			&w.Item.Content,
@@ -162,6 +161,7 @@ func (w *wrappedItem) Description() string {
 		if err != nil {
 			// failed to sanitise, so just return as is...
 			slog.Warn("html.Parse failed, returning unsanitised content", "error", err)
+
 			w.description = desc
 		} else {
 			w.descriptionImagesForDedupe = &[]string{}
@@ -172,7 +172,6 @@ func (w *wrappedItem) Description() string {
 				// fmt.Println(n)
 				if n.Type == html.ElementNode {
 					// fmt.Println(n.Data)
-
 					if tagsToRemoveRe.MatchString(n.Data) {
 						// fmt.Println("removing", n.Data, "tag")
 						toDelete = append(toDelete, n)
@@ -181,11 +180,13 @@ func (w *wrappedItem) Description() string {
 					}
 
 					allowedAttrs := []html.Attribute{}
+
 					for i := range n.Attr {
 						if !attrsToRemoveRe.MatchString(n.Attr[i].Key) {
 							allowedAttrs = append(allowedAttrs, n.Attr[i])
 						}
 					}
+
 					n.Attr = allowedAttrs
 
 					if n.Data == "a" {
