@@ -77,7 +77,7 @@ func Start(configFilename, configReadCacheFilename, listenAddress string, update
 	allFeeds.UpdateTime = updateTime
 	allFeeds.BeginFeedUpdates()
 
-	http.HandleFunc("GET /", index)
+	http.HandleFunc("GET /{$}", index)
 	http.HandleFunc("GET /feeds", feedlist)
 	http.HandleFunc("GET /items", items)
 	http.HandleFunc("POST /items", items)
@@ -89,7 +89,7 @@ func Start(configFilename, configReadCacheFilename, listenAddress string, update
 
 	// As the static files won't change we force the browser to cache them.
 	httpFS := http.FileServer(http.FS(wwwlibs))
-	http.Handle("/libs/", forceCache(httpFS))
+	http.Handle("GET /libs/", forceCache(httpFS))
 
 	slog.Info("Listening", "address", listenAddress)
 
