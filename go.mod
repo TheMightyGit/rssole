@@ -8,7 +8,7 @@ require (
 	github.com/k3a/html2text v1.2.1
 	github.com/mmcdole/gofeed v1.2.1
 	golang.org/x/exp v0.0.0-20240213143201-ec583247a57a
-	golang.org/x/net v0.21.0
+	golang.org/x/net v0.22.0
 )
 
 require (
