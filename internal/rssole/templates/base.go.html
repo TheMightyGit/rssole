@@ -64,12 +64,5 @@
 </div>
 
 <script src="/libs/bootstrap.bundle.min.js"></script>
-<script>
-  htmx.on("htmx:afterSwap", function(evt) {
-    if(evt.target.id == "items") {
-      evt.detail.elt.scrollIntoView();
-    }
-  });
-</script>
 </body>
 </html>
