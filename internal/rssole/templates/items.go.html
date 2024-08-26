@@ -1,5 +1,5 @@
-  <div class="container m-0 p-0">
-    <div class="row">
+  <div class="container m-0 p-0 sticky-top bg-body">
+    <div class="row m-0 p-0">
       <div class="col col-sm-8">
         {{if .Link}}
         <a target="_new" class="lead link-primary link-underline-opacity-0" href="{{.Link}}">{{.Title}}</a>
@@ -43,10 +43,10 @@
 
   <div class="accordion accordion-flush" id="itemsAccordion">
   {{range $idx, $item := .Items}}
-    <div class="accordion-item">
+  <div class="accordion-item">
       <h2 class="accordion-header">
         <div class="p-2 accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{$idx}}" aria-expanded="true" aria-controls="collapse{{$idx}}">
-          <div id="content{{.ID}}" class="w-100">
+          <div id="content{{$item.ID}}" class="w-100">
             {{template "components/itemline" $item}}
           </div>
         </div>
@@ -55,22 +55,22 @@
       <div id="collapse{{$idx}}" class="accordion-collapse collapse">
         <div class="accordion-body m-0 p-2">
           <div class="w-100 d-flex justify-content-between">
-            {{if .Link}}
+            {{if $item.Link}}
             <div class="me-3">
-              <a href="{{.Link}}" class="icon-link mr-1 text-nowrap" target="_new" alt="go to story"><i class="bi-box-arrow-up-right"></i>&nbsp;link</a>
+              <a href="{{$item.Link}}" class="icon-link mr-1 text-nowrap" target="_new" alt="go to story"><i class="bi-box-arrow-up-right"></i>&nbsp;link</a>
             </div>
             {{end}}
-            {{if .Categories}}
+            {{if $item.Categories}}
             <div>
               <small>
-                {{range .Categories}}
+                {{range $item.Categories}}
                   <span class="badge rounded-pill text-bg-secondary">{{.}}</span>
                 {{end}}
               </small>
             </div>
             {{end}}
             <div class="ms-3">
-              <small>{{.PublishedParsed}}</small>
+              <small>{{$item.PublishedParsed}}</small>
             </div>
           </div>
           <hr class="w-100" />

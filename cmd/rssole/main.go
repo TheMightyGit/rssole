@@ -49,7 +49,7 @@ func getFeedsFileConfigSection(filename string) (rssole.ConfigSection, error) {
 func handleFlags(configFilename, configReadCacheFilename *string) {
 	originalUsage := flag.Usage
 	flag.Usage = func() {
-		fmt.Println("RiSSOLE version", rssole.Version)
+		fmt.Println("RSSOLE version", rssole.Version)
 		fmt.Println()
 		originalUsage()
 	}

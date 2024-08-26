@@ -59,7 +59,7 @@ func loadTemplates() error {
 }
 
 func Start(configFilename, configReadCacheFilename, listenAddress string, updateTime time.Duration) error {
-	slog.Info("RiSSOLE", "version", Version)
+	slog.Info("RSSOLE", "version", Version)
 
 	err := loadTemplates()
 	if err != nil {
