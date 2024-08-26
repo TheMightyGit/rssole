@@ -52,3 +52,9 @@ clean:
 	rm -Rf dist
 	rm -Rf .test_dummy
 	rm -f rssole
+
+deploycolin:
+	-ssh colin.local "killall rssole"
+	GOOS=linux make build
+	scp rssole colin.local:.
+	ssh colin.local "nohup ./rssole 2>rssole.out 1>rssole.out &"
