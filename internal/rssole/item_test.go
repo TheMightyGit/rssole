@@ -1,6 +1,7 @@
 package rssole
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
@@ -122,16 +123,17 @@ func TestImages_ShouldNotDedupe(t *testing.T) {
 	w := wrappedItem{
 		Item: &gofeed.Item{
 			Image: &gofeed.Image{
-				URL: "this_image_is_only_present_in_image",
+				URL: "http://example.com/this_image_is_only_present_in_meta.gif",
 			},
 			Description: `
-<img src='this_image_is_present_only_in_content' />
-<svg src='this_svg_is_present_only_in_content' />
+<img src="http://example.com/this_other_image_is_present_only_in_content.gif" />
 			`,
 		},
 	}
 
 	images := w.Images()
+
+	fmt.Println(images)
 
 	if len(images) != 1 {
 		t.Error("expected image list to be 1 as it should not be de-duped")

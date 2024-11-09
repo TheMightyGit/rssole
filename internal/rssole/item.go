@@ -47,6 +47,11 @@ func (w *wrappedItem) Images() []string {
 
 	images := []string{}
 
+	// standard supplied image
+	if w.Item.Image != nil {
+		images = append(images, w.Item.Image.URL)
+	}
+
 	// mastodon/gibiz images
 	if media, found := w.Item.Extensions["media"]; found {
 		if content, found := media["content"]; found {
@@ -99,7 +104,6 @@ func (w *wrappedItem) Images() []string {
 
 func (w *wrappedItem) Description() string {
 	w.onceDescription.Do(func() {
-
 		// create a list of descriptions from various sources,
 		// we'll pick the longest later on.
 		descSources := []*string{
@@ -139,15 +143,17 @@ func (w *wrappedItem) Description() string {
 
 		// First convert rando HTML to Markdown....
 		doc, err := htmltomarkdown.ConvertString(*desc)
-		if err != nil {
+
+		switch {
+		case err != nil:
 			slog.Warn("htmltomarkdown.ConvertString failed, returning unsanitised content", "error", err)
 
 			w.description = desc
-		} else if doc == "" {
+		case doc == "":
 			slog.Warn("htmltomarkdown.ConvertString result blank, using original.")
 
 			w.description = desc
-		} else {
+		default:
 			// parse markdown
 			p := parser.NewWithExtensions(parser.CommonExtensions | parser.AutoHeadingIDs | parser.NoEmptyLineBeforeBlock)
 			md := p.Parse([]byte(doc))
