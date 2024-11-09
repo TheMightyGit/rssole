@@ -118,6 +118,9 @@
     {
       "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCgye4RmWOR8AmleinMxgbYw",
       "category": "YouTube"
+    },
+    {
+      "url": "https://movieweb.com/feed/"
     }
   ]
 }
