@@ -11,6 +11,7 @@ require (
 	github.com/gomarkdown/markdown v0.0.0-20241105142532-d03b89096d81
 	github.com/k3a/html2text v1.2.1
 	github.com/mmcdole/gofeed v1.3.0
+	github.com/mpvl/unique v0.0.0-20150818121801-cbe035fff7de
 	golang.org/x/exp v0.0.0-20241108190413-2d47ceb2692f
 	golang.org/x/net v0.31.0
 )
@@ -22,6 +23,5 @@ require (
 	github.com/mmcdole/goxpp v1.1.1 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
-	github.com/mpvl/unique v0.0.0-20150818121801-cbe035fff7de // indirect
 	golang.org/x/text v0.20.0 // indirect
 )
