@@ -1,6 +1,7 @@
 package rssole
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
@@ -61,51 +62,20 @@ func TestDescription_HtmlSanitised(t *testing.T) {
 <meta foo="Should Be Deleted">
 <iframe>Should Be Deleted</iframe>
 <a></a>
-<img >
-<svg />
+<img foo="bar" width="10000" src="http://example.com/example.gif" alt="my alt" />
+<svg width="200" height="250" version="1.1" xmlns="http://www.w3.org/2000/svg">
+</svg>
 <form></form>
 `,
 		},
 	}
-	expectedHTML := `<html><head>
-
-
-
-</head><body>
-<a target="_new"></a>
-<img style="max-width: 60%;"/>
-<svg style="max-width: 60%;"></svg>
-
-</body></html>`
+	expectedHTML := `<p><img src="http://example.com/example.gif" alt="my alt" /></p>
+`
 
 	d := w.Description()
 
 	if d != expectedHTML {
-		t.Fatal("description not as expected. got", d, "expected:", expectedHTML)
-	}
-}
-
-func TestIsDescriptionImage(t *testing.T) {
-	w := wrappedItem{
-		Item: &gofeed.Item{
-			Description: `
-<img src='this_image_is_present' />
-<svg src='this_svg_is_present' />
-<button src='this_not_an_image' />
-			`,
-		},
-	}
-
-	if !w.isDescriptionImage("this_image_is_present") {
-		t.Error("expected to find 'this_image_is_present' in description images")
-	}
-
-	if !w.isDescriptionImage("this_svg_is_present") {
-		t.Error("expected to find 'this_svg_is_present' in description images")
-	}
-
-	if w.isDescriptionImage("this_not_an_image") {
-		t.Error("expected not to find 'this_not_an_image' in description images")
+		t.Fatal("description not as expected. got:", d, "expected:", expectedHTML)
 	}
 }
 
@@ -153,16 +123,17 @@ func TestImages_ShouldNotDedupe(t *testing.T) {
 	w := wrappedItem{
 		Item: &gofeed.Item{
 			Image: &gofeed.Image{
-				URL: "this_image_is_only_present_in_image",
+				URL: "http://example.com/this_image_is_only_present_in_meta.gif",
 			},
 			Description: `
-<img src='this_image_is_present_only_in_content' />
-<svg src='this_svg_is_present_only_in_content' />
+<img src="http://example.com/this_other_image_is_present_only_in_content.gif" />
 			`,
 		},
 	}
 
 	images := w.Images()
+
+	fmt.Println(images)
 
 	if len(images) != 1 {
 		t.Error("expected image list to be 1 as it should not be de-duped")
