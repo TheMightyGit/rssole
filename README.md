@@ -2,8 +2,9 @@
 
 # rssole
 
-An RSS Reader inspired by the late Google Reader. Runs on your local machine or
-local network serving your RSS feeds via a clean responsive web interface.
+An absolutely no frills RSS Reader inspired by the late Google Reader. Runs on
+your local machine or local network serving your RSS feeds via a clean
+responsive web interface.
 
 ![Screenshot 2023-08-10 at 14 21 53](https://github.com/TheMightyGit/rssole/assets/888751/a44ae604-72a4-4e92-8ed7-5580663eaf0c)
 
