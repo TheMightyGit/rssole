@@ -9,12 +9,12 @@ import (
 	"sync"
 
 	htmltomarkdown "github.com/JohannesKaufmann/html-to-markdown/v2"
-	"github.com/k3a/html2text"
-	"github.com/mmcdole/gofeed"
-
 	"github.com/gomarkdown/markdown"
 	"github.com/gomarkdown/markdown/html"
 	"github.com/gomarkdown/markdown/parser"
+	"github.com/k3a/html2text"
+	"github.com/mmcdole/gofeed"
+	"github.com/mpvl/unique"
 )
 
 type wrappedItem struct {
@@ -88,6 +88,7 @@ func (w *wrappedItem) Images() []string {
 
 	dedupedImages := []string{}
 
+	// Remove any image sources already within the description...
 	for _, img := range images {
 		srcNoQueryString := strings.Split(img, "?")[0]
 		if !strings.Contains(w.Description(), srcNoQueryString) {
@@ -96,6 +97,9 @@ func (w *wrappedItem) Images() []string {
 			slog.Info("dedeuped meta image as already found in content", "src", img)
 		}
 	}
+
+	// Remove any internal duplicates within the list...
+	unique.Strings(&dedupedImages)
 
 	w.images = &dedupedImages
 
