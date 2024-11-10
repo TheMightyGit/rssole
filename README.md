@@ -23,6 +23,22 @@ project solely based around my needs, and because of that it's something I use
 constantly. Hopefully it's of use to some other people, or you can build upon
 it (MIT license, do what you want to it - make it comfortable for you).
 
+## Advantages/Limitations
+
+I see these as advantages (so they are unlikely to be added as features), but
+some may see them as limitations...
+
+- Only shows what's in the feed currently, does not store stories beyond their
+  lifetime in the feed.
+- Doesn't try to fetch anything from the linked page, only shows info present
+  in the feed. The aim is not to keep you inside the RRS reader, if you want
+  more then follow the link to the origin site.
+- No bookmarks/favourites - you can already do this in the browser.
+- It's not multi-user, there is no login or security protection. It's not
+  intended as a SaaS product, it's just for you on your local machine or
+  network. But you can stick an authenticating HTTP proxy in front of it if you
+  wish.
+
 ## Pre-Built Binaries and Packages
 
 Check out the [Releases](https://github.com/TheMightyGit/rssole/releases/)
