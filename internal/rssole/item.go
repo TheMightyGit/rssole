@@ -3,6 +3,7 @@ package rssole
 import (
 	"crypto/md5"
 	"encoding/hex"
+	"fmt"
 	"log/slog"
 	"net/url"
 	"strings"
@@ -162,9 +163,17 @@ func (w *wrappedItem) Description() string {
 			p := parser.NewWithExtensions(parser.CommonExtensions | parser.AutoHeadingIDs | parser.NoEmptyLineBeforeBlock)
 			md := p.Parse([]byte(doc))
 
+			absRoot := ""
+
+			if u, err := url.Parse(w.Link); err == nil {
+				// some stories (e.g. Go Blog) have root relative links, so we need to supply a root (of the site, not story).
+				absRoot = fmt.Sprintf("%s://%s", u.Scheme, u.Host)
+			}
+
 			// render to HTML (we choose to exclude embedded images and rely on them being passed in metadata)
 			renderer := html.NewRenderer(html.RendererOptions{
-				Flags: html.CommonFlags | html.HrefTargetBlank,
+				AbsolutePrefix: absRoot,
+				Flags:          html.CommonFlags | html.HrefTargetBlank,
 			})
 			mdHTML := string(markdown.Render(md, renderer))
 			w.description = &mdHTML
