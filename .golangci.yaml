@@ -8,7 +8,7 @@ linters:
     - stylecheck
     # - noctx
     - nlreturn
-    - gomnd
+    # - gomnd
     - wsl
     - revive
     - bodyclose
