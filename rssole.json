@@ -121,6 +121,14 @@
     },
     {
       "url": "https://movieweb.com/feed/"
+    },
+    {
+      "url": "https://bsky.app/profile/happytoast.bsky.social/rss",
+      "category": "BlueSky"
+    },
+    {
+      "url": "https://openrss.org/bsky.app/profile/happytoast.bsky.social",
+      "category": "BlueSky"
     }
   ]
 }

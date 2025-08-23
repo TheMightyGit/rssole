@@ -58,3 +58,9 @@ deploycolin:
 	GOOS=linux make build
 	scp rssole colin.local:.
 	ssh colin.local "nohup ./rssole 2>rssole.out 1>rssole.out &"
+
+deploymalcolm:
+	-ssh malcolm.local "killall rssole"
+	GOOS=linux make build
+	scp rssole malcolm.local:.
+	ssh malcolm.local "nohup ./rssole 2>rssole.out 1>rssole.out &"
