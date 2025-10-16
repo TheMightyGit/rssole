@@ -1,15 +1,30 @@
+version: "2"
 linters:
-  #enable-all: true
   enable:
-    - gocritic
-    # - varnamelen
-    - wrapcheck
-    - usestdlibvars
-    - stylecheck
-    # - noctx
-    - nlreturn
-    # - gomnd
-    - wsl
-    - revive
     - bodyclose
     - errorlint
+    - gocritic
+    - nlreturn
+    - revive
+    - staticcheck
+    - usestdlibvars
+    - wrapcheck
+    - wsl
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
