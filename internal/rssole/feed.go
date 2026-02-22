@@ -34,6 +34,9 @@ type feed struct {
 
 	eTag         string
 	lastModified time.Time
+
+	lastSuccess time.Time
+	lastError   time.Time
 }
 
 var (
@@ -292,6 +295,9 @@ func (f *feed) StartTickedUpdate(updateTime time.Duration) {
 	go func() {
 		if err := f.Update(); err != nil {
 			f.log.Error("update failed", "error", err)
+			f.recordError()
+		} else {
+			f.recordSuccess()
 		}
 
 		for {
@@ -307,6 +313,9 @@ func (f *feed) StartTickedUpdate(updateTime time.Duration) {
 
 				if err := f.Update(); err != nil {
 					f.log.Error("update failed", "error", err)
+					f.recordError()
+				} else {
+					f.recordSuccess()
 				}
 			}
 		}
@@ -334,4 +343,25 @@ func (f *feed) ID() string {
 	hash := md5.Sum([]byte(f.URL))
 
 	return hex.EncodeToString(hash[:])
+}
+
+func (f *feed) recordSuccess() {
+	f.mu.Lock()
+	f.lastSuccess = time.Now()
+	f.mu.Unlock()
+}
+
+func (f *feed) recordError() {
+	f.mu.Lock()
+	f.lastError = time.Now()
+	f.mu.Unlock()
+}
+
+// HasRecentError returns true if the last update failed
+// (lastError is more recent than lastSuccess).
+func (f *feed) HasRecentError() bool {
+	f.mu.RLock()
+	defer f.mu.RUnlock()
+
+	return f.lastError.After(f.lastSuccess)
 }
