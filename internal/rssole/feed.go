@@ -25,11 +25,13 @@ type feed struct {
 	Scrape     *scrape           `json:"scrape,omitempty"`
 	RecentLogs *limitLinesBuffer `json:"-"`
 
-	ticker   *time.Ticker
-	stopCh   chan struct{}
-	updateCh chan struct{}
-	feed     *gofeed.Feed
-	mu       sync.RWMutex
+	ticker       *time.Ticker
+	stopCh       chan struct{}
+	updateCh     chan struct{}
+	updatePeriod time.Duration
+	lastPolled   time.Time
+	feed         *gofeed.Feed
+	mu           sync.RWMutex
 
 	wrappedItems []*wrappedItem
 	log          *slog.Logger
@@ -291,6 +293,7 @@ func (f *feed) StartTickedUpdate(updateTime time.Duration) {
 	f.ticker = time.NewTicker(updateTime)
 	f.stopCh = make(chan struct{})
 	f.updateCh = make(chan struct{}, 1)
+	f.updatePeriod = updateTime
 
 	stopCh := f.stopCh
 	ticker := f.ticker
@@ -321,6 +324,12 @@ func (f *feed) StartTickedUpdate(updateTime time.Duration) {
 }
 
 func (f *feed) doUpdate() {
+	if time.Since(f.lastPolled) < f.updatePeriod-time.Second {
+		return // too soon
+	}
+
+	f.lastPolled = time.Now()
+
 	if err := f.Update(); err != nil {
 		if !errors.Is(err, ErrNotModified) {
 			f.log.Error("update failed", "error", err)
@@ -345,6 +354,7 @@ func (f *feed) ChangeTickedUpdate(d time.Duration) {
 	if f.ticker != nil {
 		f.log.Info("Update ticker", "update", d)
 		f.ticker.Reset(d)
+		f.updatePeriod = d
 	}
 }
 
