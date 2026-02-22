@@ -294,8 +294,10 @@ func (f *feed) StartTickedUpdate(updateTime time.Duration) {
 
 	go func() {
 		if err := f.Update(); err != nil {
-			f.log.Error("update failed", "error", err)
-			f.recordError()
+			if !errors.Is(err, ErrNotModified) {
+				f.log.Error("update failed", "error", err)
+				f.recordError()
+			}
 		} else {
 			f.recordSuccess()
 		}
@@ -312,8 +314,10 @@ func (f *feed) StartTickedUpdate(updateTime time.Duration) {
 				}
 
 				if err := f.Update(); err != nil {
-					f.log.Error("update failed", "error", err)
-					f.recordError()
+					if !errors.Is(err, ErrNotModified) {
+						f.log.Error("update failed", "error", err)
+						f.recordError()
+					}
 				} else {
 					f.recordSuccess()
 				}
