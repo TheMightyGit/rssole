@@ -287,6 +287,10 @@ func (f *feed) StartTickedUpdate(updateTime time.Duration) {
 		}
 
 		for range f.ticker.C {
+			if isIdle() {
+				f.log.Info("Skipping update, no active clients")
+				continue
+			}
 			if err := f.Update(); err != nil {
 				f.log.Error("update failed", "error", err)
 			}
