@@ -6,49 +6,12 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"sync"
 	"time"
 
 	"golang.org/x/exp/slog"
 )
 
 const idleTimeout = 15 * time.Minute
-
-var (
-	lastActivity   time.Time
-	lastActivityMu sync.Mutex
-	startOnce      sync.Once
-)
-
-func recordActivity() {
-	startOnce.Do(func() {
-		slog.Info("First client connected, starting feed updates")
-		allFeeds.BeginFeedUpdates()
-	})
-
-	var wasIdle bool
-
-	lastActivityMu.Lock()
-	wasIdle = !lastActivity.IsZero() && time.Since(lastActivity) > idleTimeout
-	lastActivity = time.Now()
-	lastActivityMu.Unlock()
-
-	if wasIdle {
-		slog.Info("Client reconnected after idle, triggering feed updates")
-		allFeeds.triggerUpdates()
-	}
-}
-
-func isIdle() bool {
-	lastActivityMu.Lock()
-	defer lastActivityMu.Unlock()
-
-	if lastActivity.IsZero() {
-		return false
-	}
-
-	return time.Since(lastActivity) > idleTimeout
-}
 
 func (f *feeds) triggerUpdates() {
 	for _, fd := range f.list.All() {
@@ -70,16 +33,21 @@ type feedsJSON struct {
 }
 
 func (f *feeds) MarshalJSON() ([]byte, error) {
-	return json.Marshal(&feedsJSON{
+	data, err := json.Marshal(&feedsJSON{
 		Config: f.Config,
 		Feeds:  f.list.All(),
 	})
+	if err != nil {
+		return nil, fmt.Errorf("error marshalling feeds: %w", err)
+	}
+
+	return data, nil
 }
 
 func (f *feeds) UnmarshalJSON(data []byte) error {
 	var fj feedsJSON
 	if err := json.Unmarshal(data, &fj); err != nil {
-		return err
+		return fmt.Errorf("error unmarshalling feeds: %w", err)
 	}
 
 	f.Config = fj.Config
@@ -106,8 +74,8 @@ func (f *feeds) All() []*feed {
 	return f.list.All()
 }
 
-func (f *feeds) addFeed(feedToAdd *feed) {
-	feedToAdd.StartTickedUpdate(f.UpdateTime)
+func (f *feeds) addFeed(feedToAdd *feed, readCache ReadCache, activity ActivityTracker) {
+	feedToAdd.StartTickedUpdate(f.UpdateTime, readCache, activity)
 	f.list.Add(feedToAdd)
 }
 
@@ -169,12 +137,12 @@ func (f *feeds) FeedTree() map[string][]*feed {
 	return cats
 }
 
-func (f *feeds) BeginFeedUpdates() {
+func (f *feeds) BeginFeedUpdates(readCache ReadCache, activity ActivityTracker) {
 	// ignore cert errors
 	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 
 	for _, feed := range f.list.All() {
-		feed.StartTickedUpdate(f.UpdateTime)
+		feed.StartTickedUpdate(f.UpdateTime, readCache, activity)
 	}
 }
 

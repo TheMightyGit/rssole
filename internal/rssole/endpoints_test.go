@@ -13,6 +13,9 @@ import (
 	"github.com/mmcdole/gofeed"
 )
 
+// testService holds the Service instance used across tests.
+var testService *Service
+
 var testItem1 = &wrappedItem{
 	IsUnread: true,
 	Feed:     &feed{},
@@ -24,8 +27,11 @@ var testItem1 = &wrappedItem{
 }
 
 func init() {
-	// We need the templates lodaed for endpoint tests.
-	_ = loadTemplates()
+	// Create a test service instance
+	testService = NewService()
+
+	// Load templates onto the service
+	_ = testService.loadTemplates()
 
 	testItem1.Feed.Init()
 
@@ -46,14 +52,14 @@ func init() {
 	}
 	feed2.Init()
 
-	allFeeds.list.Add(feed1)
-	allFeeds.list.Add(feed2)
+	testService.feeds.list.Add(feed1)
+	testService.feeds.list.Add(feed2)
 
 	// zero will cause errors if UpdateTime is not set positive
-	allFeeds.UpdateTime = 10
+	testService.feeds.UpdateTime = 10
 
-	allFeeds.Config.Listen = "1.2.3.4:5678"
-	allFeeds.Config.UpdateSeconds = 987
+	testService.feeds.Config.Listen = "1.2.3.4:5678"
+	testService.feeds.Config.UpdateSeconds = 987
 }
 
 var readCacheDir string
@@ -73,8 +79,8 @@ func setUpTearDown(_ *testing.T) func(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	// swap the global one out to a safe one
-	readLut = &unreadLut{
+	// swap the service's readLut with one that uses a tmp file
+	testService.readLut = &unreadLut{
 		Filename: file.Name(),
 	}
 
@@ -93,7 +99,7 @@ func TestIndex(t *testing.T) {
 
 	// We create a ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
 	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(index)
+	handler := http.HandlerFunc(testService.index)
 
 	// Our handlers satisfy http.Handler, so we can call their ServeHTTP method
 	// directly and pass in our Request and ResponseRecorder.
@@ -126,7 +132,7 @@ func TestFeedlist(t *testing.T) {
 
 	// We create a ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
 	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(feedlist)
+	handler := http.HandlerFunc(testService.feedlist)
 
 	// Our handlers satisfy http.Handler, so we can call their ServeHTTP method
 	// directly and pass in our Request and ResponseRecorder.
@@ -158,12 +164,16 @@ func TestFeedlist_NotModified(t *testing.T) {
 	}
 
 	req.Header.Add("If-Modified-Since", time.Now().Format(http.TimeFormat))
+
 	yesterday := time.Now().Add(-time.Hour * 24)
-	lastmodified = yesterday // global
+
+	testService.muLastmodified.Lock()
+	testService.lastmodified = yesterday
+	testService.muLastmodified.Unlock()
 
 	// We create a ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
 	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(feedlist)
+	handler := http.HandlerFunc(testService.feedlist)
 
 	// Our handlers satisfy http.Handler, so we can call their ServeHTTP method
 	// directly and pass in our Request and ResponseRecorder.
@@ -186,11 +196,13 @@ func TestFeedlist_Modified(t *testing.T) {
 	yesterday := time.Now().Add(-time.Hour * 24)
 	req.Header.Add("If-Modified-Since", yesterday.Format(http.TimeFormat))
 
-	lastmodified = time.Now() // global
+	testService.muLastmodified.Lock()
+	testService.lastmodified = time.Now()
+	testService.muLastmodified.Unlock()
 
 	// We create a ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
 	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(feedlist)
+	handler := http.HandlerFunc(testService.feedlist)
 
 	// Our handlers satisfy http.Handler, so we can call their ServeHTTP method
 	// directly and pass in our Request and ResponseRecorder.
@@ -212,7 +224,7 @@ func TestItemsGet(t *testing.T) {
 
 	// We create a ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
 	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(items)
+	handler := http.HandlerFunc(testService.items)
 
 	// Our handlers satisfy http.Handler, so we can call their ServeHTTP method
 	// directly and pass in our Request and ResponseRecorder.
@@ -256,7 +268,7 @@ func TestItemsPostMarkAsRead(t *testing.T) {
 
 	// We create a ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
 	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(items)
+	handler := http.HandlerFunc(testService.items)
 
 	// Our handlers satisfy http.Handler, so we can call their ServeHTTP method
 	// directly and pass in our Request and ResponseRecorder.
@@ -280,7 +292,7 @@ func TestItemsPostMarkAsRead(t *testing.T) {
 		}
 	}
 
-	if readLut.isUnread("http://example.com/story/1") {
+	if testService.readLut.IsUnread("http://example.com/story/1") {
 		t.Fatal("story should have been marked read")
 	}
 }
@@ -297,7 +309,7 @@ func TestItem(t *testing.T) {
 
 	// We create a ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
 	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(item)
+	handler := http.HandlerFunc(testService.item)
 
 	// Our handlers satisfy http.Handler, so we can call their ServeHTTP method
 	// directly and pass in our Request and ResponseRecorder.
@@ -327,7 +339,7 @@ func TestCrudFeed_Get(t *testing.T) {
 	}
 
 	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(crudfeedGet)
+	handler := http.HandlerFunc(testService.crudfeedGet)
 	handler.ServeHTTP(rr, req)
 
 	if status := rr.Code; status != http.StatusOK {
@@ -339,7 +351,7 @@ func TestCrudFeed_Get(t *testing.T) {
 func TestCrudFeed_Post_AddRssFeed(t *testing.T) {
 	defer setUpTearDown(t)(t)
 
-	currentNumFeeds := len(allFeeds.All())
+	currentNumFeeds := len(testService.feeds.All())
 
 	data := url.Values{}
 	data.Add("url", "http://example.com/added_feed_url")
@@ -356,7 +368,7 @@ func TestCrudFeed_Post_AddRssFeed(t *testing.T) {
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
 	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(crudfeedPost)
+	handler := http.HandlerFunc(testService.crudfeedPost)
 	handler.ServeHTTP(rr, req)
 
 	if status := rr.Code; status != http.StatusOK {
@@ -365,11 +377,11 @@ func TestCrudFeed_Post_AddRssFeed(t *testing.T) {
 	}
 
 	// did a feed get added?
-	if len(allFeeds.All()) != currentNumFeeds+1 {
-		t.Errorf("expected number of feeds to be higher now, but got: %d", len(allFeeds.All()))
+	if len(testService.feeds.All()) != currentNumFeeds+1 {
+		t.Errorf("expected number of feeds to be higher now, but got: %d", len(testService.feeds.All()))
 	}
 
-	newFeed := allFeeds.All()[currentNumFeeds]
+	newFeed := testService.feeds.All()[currentNumFeeds]
 	if newFeed.URL != "http://example.com/added_feed_url" {
 		t.Error("expected new feed url to match, got:", newFeed.URL)
 	}
@@ -387,7 +399,7 @@ func TestCrudFeed_Post_AddRssFeed_WithScrape(t *testing.T) {
 	defer setUpTearDown(t)(t)
 
 	// do we start with the expected number of feeds?
-	currentNumFeeds := len(allFeeds.All())
+	currentNumFeeds := len(testService.feeds.All())
 
 	data := url.Values{}
 	data.Add("url", "http://example.com/added_feed_url")
@@ -409,7 +421,7 @@ func TestCrudFeed_Post_AddRssFeed_WithScrape(t *testing.T) {
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
 	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(crudfeedPost)
+	handler := http.HandlerFunc(testService.crudfeedPost)
 	handler.ServeHTTP(rr, req)
 
 	if status := rr.Code; status != http.StatusOK {
@@ -418,11 +430,11 @@ func TestCrudFeed_Post_AddRssFeed_WithScrape(t *testing.T) {
 	}
 
 	// did a feed get added?
-	if len(allFeeds.All()) != currentNumFeeds+1 {
-		t.Errorf("expected number of feeds to be higher now, but got: %d", len(allFeeds.All()))
+	if len(testService.feeds.All()) != currentNumFeeds+1 {
+		t.Errorf("expected number of feeds to be higher now, but got: %d", len(testService.feeds.All()))
 	}
 
-	newFeed := allFeeds.All()[currentNumFeeds]
+	newFeed := testService.feeds.All()[currentNumFeeds]
 	if newFeed.URL != "http://example.com/added_feed_url" {
 		t.Error("expected new feed url to match, got:", newFeed.URL)
 	}
@@ -460,10 +472,10 @@ func TestCrudFeed_Post_AddRssFeed_WithScrape(t *testing.T) {
 func TestCrudFeed_Post_DeleteRssFeed(t *testing.T) {
 	defer setUpTearDown(t)(t)
 
-	currentNumFeeds := len(allFeeds.All())
+	currentNumFeeds := len(testService.feeds.All())
 
 	data := url.Values{}
-	data.Add("id", allFeeds.All()[0].ID())
+	data.Add("id", testService.feeds.All()[0].ID())
 	data.Add("delete", "delete")
 
 	body := strings.NewReader(data.Encode())
@@ -476,7 +488,7 @@ func TestCrudFeed_Post_DeleteRssFeed(t *testing.T) {
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
 	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(crudfeedPost)
+	handler := http.HandlerFunc(testService.crudfeedPost)
 	handler.ServeHTTP(rr, req)
 
 	if status := rr.Code; status != http.StatusOK {
@@ -485,8 +497,8 @@ func TestCrudFeed_Post_DeleteRssFeed(t *testing.T) {
 	}
 
 	// did a feed get removed?
-	if len(allFeeds.All()) != currentNumFeeds-1 {
-		t.Errorf("expected number of feeds to be lower now, but got: %d", len(allFeeds.All()))
+	if len(testService.feeds.All()) != currentNumFeeds-1 {
+		t.Errorf("expected number of feeds to be lower now, but got: %d", len(testService.feeds.All()))
 	}
 }
 
@@ -494,7 +506,7 @@ func TestCrudFeed_Post_UpdateRssFeed_WithScrape(t *testing.T) {
 	defer setUpTearDown(t)(t)
 
 	data := url.Values{}
-	data.Add("id", allFeeds.All()[0].ID()) // replace whatever's there
+	data.Add("id", testService.feeds.All()[0].ID()) // replace whatever's there
 	data.Add("url", "http://example.com/added_feed_url")
 	data.Add("name", "Feed Nickname")
 	data.Add("category", "Super Category")
@@ -514,7 +526,7 @@ func TestCrudFeed_Post_UpdateRssFeed_WithScrape(t *testing.T) {
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
 	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(crudfeedPost)
+	handler := http.HandlerFunc(testService.crudfeedPost)
 	handler.ServeHTTP(rr, req)
 
 	if status := rr.Code; status != http.StatusOK {
@@ -522,7 +534,7 @@ func TestCrudFeed_Post_UpdateRssFeed_WithScrape(t *testing.T) {
 			status, http.StatusOK)
 	}
 
-	updatedFeed := allFeeds.All()[0]
+	updatedFeed := testService.feeds.All()[0]
 	if updatedFeed.URL != "http://example.com/added_feed_url" {
 		t.Error("expected new feed url to match, got:", updatedFeed.URL)
 	}
@@ -566,7 +578,7 @@ func TestSettings_Get(t *testing.T) {
 	}
 
 	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(settingsGet)
+	handler := http.HandlerFunc(testService.settingsGet)
 	handler.ServeHTTP(rr, req)
 
 	if status := rr.Code; status != http.StatusOK {
@@ -601,7 +613,7 @@ func TestSettings_Post(t *testing.T) {
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
 	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(settingsPost)
+	handler := http.HandlerFunc(testService.settingsPost)
 	handler.ServeHTTP(rr, req)
 
 	if status := rr.Code; status != http.StatusOK {

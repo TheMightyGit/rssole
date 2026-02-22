@@ -135,7 +135,9 @@ func TestFeedList_ConcurrentAdd(t *testing.T) {
 	fl := newFeedList()
 
 	const n = 1000
+
 	var wg sync.WaitGroup
+
 	wg.Add(n)
 
 	// All goroutines start at the same time to maximize contention
@@ -144,7 +146,9 @@ func TestFeedList_ConcurrentAdd(t *testing.T) {
 	for i := range n {
 		go func(id int) {
 			defer wg.Done()
+
 			<-start
+
 			f := &feed{URL: fmt.Sprintf("http://example.com/%d", id)}
 			fl.Add(f)
 		}(i)
@@ -160,10 +164,12 @@ func TestFeedList_ConcurrentAdd(t *testing.T) {
 
 	// Verify all unique URLs present
 	seen := make(map[string]bool)
+
 	for _, f := range all {
 		if seen[f.URL] {
 			t.Fatalf("duplicate feed URL: %s", f.URL)
 		}
+
 		seen[f.URL] = true
 	}
 }
@@ -172,13 +178,16 @@ func TestFeedList_ConcurrentRemove(t *testing.T) {
 	fl := newFeedList()
 
 	const n = 1000
+
 	feeds := make([]*feed, n)
+
 	for i := range n {
 		feeds[i] = &feed{URL: fmt.Sprintf("http://example.com/%d", i)}
 		fl.Add(feeds[i])
 	}
 
 	var wg sync.WaitGroup
+
 	wg.Add(n)
 
 	start := make(chan struct{})
@@ -186,7 +195,9 @@ func TestFeedList_ConcurrentRemove(t *testing.T) {
 	for i := range n {
 		go func(id int) {
 			defer wg.Done()
+
 			<-start
+
 			fl.Remove(feeds[id].ID())
 		}(i)
 	}
@@ -204,10 +215,12 @@ func TestFeedList_ConcurrentAddRemoveRead(t *testing.T) {
 	fl := newFeedList()
 
 	const n = 500
+
 	var wg sync.WaitGroup
 
 	// Pre-populate
 	toRemove := make([]*feed, n)
+
 	for i := range n {
 		toRemove[i] = &feed{URL: fmt.Sprintf("http://example.com/remove-%d", i)}
 		fl.Add(toRemove[i])
@@ -217,10 +230,13 @@ func TestFeedList_ConcurrentAddRemoveRead(t *testing.T) {
 
 	// Concurrent adds
 	wg.Add(n)
+
 	for i := range n {
 		go func(id int) {
 			defer wg.Done()
+
 			<-start
+
 			f := &feed{URL: fmt.Sprintf("http://example.com/add-%d", id)}
 			fl.Add(f)
 		}(i)
@@ -228,27 +244,35 @@ func TestFeedList_ConcurrentAddRemoveRead(t *testing.T) {
 
 	// Concurrent removes
 	wg.Add(n)
+
 	for i := range n {
 		go func(id int) {
 			defer wg.Done()
+
 			<-start
+
 			fl.Remove(toRemove[id].ID())
 		}(i)
 	}
 
 	// Concurrent reads - verify we always get a consistent snapshot
 	wg.Add(n)
+
 	for range n {
 		go func() {
 			defer wg.Done()
+
 			<-start
+
 			all := fl.All()
 			// Snapshot must be internally consistent
 			seen := make(map[string]bool)
+
 			for _, f := range all {
 				if seen[f.URL] {
 					t.Errorf("duplicate in snapshot: %s", f.URL)
 				}
+
 				seen[f.URL] = true
 			}
 		}()

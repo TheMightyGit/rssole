@@ -19,9 +19,25 @@ Sorting
 
 */
 
-func feedSetUpTearDown(_ *testing.T) func(t *testing.T) {
+// feedTestReadCache is a mock ReadCache for feed tests.
+type feedTestReadCache struct {
+	filename string
+}
+
+func (m *feedTestReadCache) IsUnread(_ string) bool     { return true }
+func (m *feedTestReadCache) MarkRead(_ string)          {}
+func (m *feedTestReadCache) ExtendLifeIfFound(_ string) {}
+func (m *feedTestReadCache) Persist()                   {}
+
+// feedTestActivityTracker is a mock ActivityTracker for feed tests.
+type feedTestActivityTracker struct{}
+
+func (m *feedTestActivityTracker) IsIdle() bool        { return false }
+func (m *feedTestActivityTracker) UpdateLastModified() {}
+
+func feedSetUpTearDown(_ *testing.T) (*feedTestReadCache, *feedTestActivityTracker, func(t *testing.T)) {
 	// We don't want to make a mess of the local fs
-	// so clobber the readcache with one that uses a tmp file.
+	// so create a temp directory for the test.
 	readCacheDir, err := os.MkdirTemp("", "Test_Feed")
 	if err != nil {
 		log.Fatal(err)
@@ -32,18 +48,17 @@ func feedSetUpTearDown(_ *testing.T) func(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	// swap the global one out to a safe one
-	readLut = &unreadLut{
-		Filename: file.Name(),
-	}
+	mockRC := &feedTestReadCache{filename: file.Name()}
+	mockAT := &feedTestActivityTracker{}
 
-	return func(_ *testing.T) {
+	return mockRC, mockAT, func(_ *testing.T) {
 		os.RemoveAll(readCacheDir)
 	}
 }
 
 func TestUpdate_InvalidRssFeed(t *testing.T) {
-	defer feedSetUpTearDown(t)(t)
+	mockRC, mockAT, teardown := feedSetUpTearDown(t)
+	defer teardown(t)
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		fmt.Fprintln(w, "Invalid RSS Feed")
@@ -51,7 +66,9 @@ func TestUpdate_InvalidRssFeed(t *testing.T) {
 	defer ts.Close()
 
 	feed := &feed{
-		URL: ts.URL,
+		URL:       ts.URL,
+		readCache: mockRC,
+		activity:  mockAT,
 	}
 	feed.Init()
 
@@ -62,7 +79,8 @@ func TestUpdate_InvalidRssFeed(t *testing.T) {
 }
 
 func TestUpdate_ValidRssFeed(t *testing.T) {
-	defer feedSetUpTearDown(t)(t)
+	mockRC, mockAT, teardown := feedSetUpTearDown(t)
+	defer teardown(t)
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		fmt.Fprintln(w, `<?xml version="1.0" encoding="UTF-8" ?>
@@ -92,7 +110,9 @@ func TestUpdate_ValidRssFeed(t *testing.T) {
 	defer ts.Close()
 
 	feed := &feed{
-		URL: ts.URL,
+		URL:       ts.URL,
+		readCache: mockRC,
+		activity:  mockAT,
 	}
 	feed.Init()
 
@@ -123,6 +143,9 @@ func TestUpdate_ValidScrape(t *testing.T) {
 	}))
 	defer ts.Close()
 
+	mockRC := &feedTestReadCache{}
+	mockAT := &feedTestActivityTracker{}
+
 	feed := &feed{
 		URL: ts.URL,
 		Scrape: &scrape{
@@ -134,6 +157,8 @@ func TestUpdate_ValidScrape(t *testing.T) {
 			Title: ".title",
 			Link:  ".link",
 		},
+		readCache: mockRC,
+		activity:  mockAT,
 	}
 	feed.Init()
 
@@ -153,6 +178,9 @@ func TestUpdate_InvalidScrape(t *testing.T) {
 	}))
 	defer ts.Close()
 
+	mockRC := &feedTestReadCache{}
+	mockAT := &feedTestActivityTracker{}
+
 	feed := &feed{
 		URL: ts.URL,
 		Scrape: &scrape{
@@ -164,6 +192,8 @@ func TestUpdate_InvalidScrape(t *testing.T) {
 			Title: ".title",
 			Link:  ".link",
 		},
+		readCache: mockRC,
+		activity:  mockAT,
 	}
 	feed.Init()
 
@@ -178,7 +208,8 @@ func TestUpdate_InvalidScrape(t *testing.T) {
 }
 
 func TestStartTickedUpdate(t *testing.T) {
-	defer feedSetUpTearDown(t)(t)
+	mockRC, mockAT, teardown := feedSetUpTearDown(t)
+	defer teardown(t)
 
 	updateCount := 0
 
@@ -206,7 +237,7 @@ func TestStartTickedUpdate(t *testing.T) {
 	}
 	feed.Init()
 
-	feed.StartTickedUpdate(10 * time.Millisecond)
+	feed.StartTickedUpdate(10*time.Millisecond, mockRC, mockAT)
 	time.Sleep(45 * time.Millisecond)
 	feed.StopTickedUpdate()
 

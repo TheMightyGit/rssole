@@ -20,21 +20,15 @@ var Version = "dev"
 
 var (
 	//go:embed templates/*
-	files     embed.FS
-	templates map[string]*template.Template
+	files embed.FS
 
 	//go:embed libs/*
 	wwwlibs embed.FS
 )
 
-var (
-	allFeeds = &feeds{list: newFeedList()}
-	readLut  = &unreadLut{}
-)
-
-func loadTemplates() error {
-	if templates == nil {
-		templates = make(map[string]*template.Template)
+func (s *Service) loadTemplates() error {
+	if s.templates == nil {
+		s.templates = make(map[string]*template.Template)
 	}
 
 	tmplFiles, err := fs.ReadDir(files, templatesDir)
@@ -52,7 +46,7 @@ func loadTemplates() error {
 			return fmt.Errorf("loadTemplates parsefs - %w", err)
 		}
 
-		templates[tmpl.Name()] = pt
+		s.templates[tmpl.Name()] = pt
 	}
 
 	return nil
@@ -61,31 +55,34 @@ func loadTemplates() error {
 func Start(configFilename, configReadCacheFilename, listenAddress string, updateTime time.Duration) error {
 	slog.Info("RSSOLE", "version", Version)
 
-	err := loadTemplates()
+	svc := NewService()
+
+	err := svc.loadTemplates()
 	if err != nil {
 		return err
 	}
 
-	readLut.Filename = configReadCacheFilename
-	readLut.loadReadLut()
-	readLut.startCleanupTicker()
+	svc.readLut.Filename = configReadCacheFilename
+	svc.readLut.activity = svc // wire up the activity tracker
+	svc.readLut.loadReadLut()
+	svc.readLut.startCleanupTicker()
 
-	if err := allFeeds.readFeedsFile(configFilename); err != nil {
+	if err := svc.feeds.readFeedsFile(configFilename); err != nil {
 		return err
 	}
 
-	allFeeds.UpdateTime = updateTime
+	svc.feeds.UpdateTime = updateTime
 	// Feed updates start on first client connection (see recordActivity)
 
-	http.HandleFunc("GET /{$}", index)
-	http.HandleFunc("GET /feeds", feedlist)
-	http.HandleFunc("GET /items", items)
-	http.HandleFunc("POST /items", items)
-	http.HandleFunc("GET /item", item)
-	http.HandleFunc("GET /crudfeed", crudfeedGet)
-	http.HandleFunc("POST /crudfeed", crudfeedPost)
-	http.HandleFunc("GET /settings", settingsGet)
-	http.HandleFunc("POST /settings", settingsPost)
+	http.HandleFunc("GET /{$}", svc.index)
+	http.HandleFunc("GET /feeds", svc.feedlist)
+	http.HandleFunc("GET /items", svc.items)
+	http.HandleFunc("POST /items", svc.items)
+	http.HandleFunc("GET /item", svc.item)
+	http.HandleFunc("GET /crudfeed", svc.crudfeedGet)
+	http.HandleFunc("POST /crudfeed", svc.crudfeedPost)
+	http.HandleFunc("GET /settings", svc.settingsGet)
+	http.HandleFunc("POST /settings", svc.settingsPost)
 
 	// As the static files won't change we force the browser to cache them.
 	httpFS := http.FileServer(http.FS(wwwlibs))

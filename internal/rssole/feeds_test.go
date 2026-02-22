@@ -24,6 +24,20 @@ func feedsSetUpTearDown(_ *testing.T) func(t *testing.T) {
 	}
 }
 
+// mockReadCache is a no-op ReadCache for tests that don't need real caching.
+type mockReadCache struct{}
+
+func (m *mockReadCache) IsUnread(_ string) bool     { return true }
+func (m *mockReadCache) MarkRead(_ string)          {}
+func (m *mockReadCache) ExtendLifeIfFound(_ string) {}
+func (m *mockReadCache) Persist()                   {}
+
+// mockActivityTracker is a no-op ActivityTracker for tests.
+type mockActivityTracker struct{}
+
+func (m *mockActivityTracker) IsIdle() bool        { return false }
+func (m *mockActivityTracker) UpdateLastModified() {}
+
 func TestReadFeedsFile_Success(t *testing.T) {
 	defer feedsSetUpTearDown(t)(t)
 
@@ -80,14 +94,21 @@ func TestAddFeed(t *testing.T) {
 		list:       newFeedList(),
 	}
 
+	mockRC := &mockReadCache{}
+	mockAT := &mockActivityTracker{}
+
 	f1 := &feed{}
 	f1.Init()
 
 	f2 := &feed{}
 	f2.Init()
 
-	f.addFeed(f1)
-	f.addFeed(f2)
+	f.addFeed(f1, mockRC, mockAT)
+	f.addFeed(f2, mockRC, mockAT)
+
+	// Clean up tickers
+	f1.StopTickedUpdate()
+	f2.StopTickedUpdate()
 
 	if len(f.All()) != 2 {
 		t.Fatal("expected 2 feeds to be added")
@@ -100,6 +121,9 @@ func TestDelFeed(t *testing.T) {
 		list:       newFeedList(),
 	}
 
+	mockRC := &mockReadCache{}
+	mockAT := &mockActivityTracker{}
+
 	fd1 := &feed{URL: "1"}
 	fd1.Init()
 
@@ -109,11 +133,15 @@ func TestDelFeed(t *testing.T) {
 	fd3 := &feed{URL: "3"}
 	fd3.Init()
 
-	f.addFeed(fd1)
-	f.addFeed(fd2)
-	f.addFeed(fd3)
+	f.addFeed(fd1, mockRC, mockAT)
+	f.addFeed(fd2, mockRC, mockAT)
+	f.addFeed(fd3, mockRC, mockAT)
 
 	f.delFeed(fd1.ID())
+
+	// Clean up remaining tickers
+	fd2.StopTickedUpdate()
+	fd3.StopTickedUpdate()
 
 	if len(f.All()) != 2 {
 		t.Fatal("expected 2 feeds to be left")
@@ -126,6 +154,9 @@ func TestGetFeedByID(t *testing.T) {
 		list:       newFeedList(),
 	}
 
+	mockRC := &mockReadCache{}
+	mockAT := &mockActivityTracker{}
+
 	f1 := &feed{URL: "1"}
 	f1.Init()
 
@@ -135,9 +166,14 @@ func TestGetFeedByID(t *testing.T) {
 	f3 := &feed{URL: "3"}
 	f3.Init()
 
-	f.addFeed(f1)
-	f.addFeed(f2)
-	f.addFeed(f3)
+	f.addFeed(f1, mockRC, mockAT)
+	f.addFeed(f2, mockRC, mockAT)
+	f.addFeed(f3, mockRC, mockAT)
+
+	// Clean up tickers
+	defer f1.StopTickedUpdate()
+	defer f2.StopTickedUpdate()
+	defer f3.StopTickedUpdate()
 
 	found1 := f.getFeedByID(f1.ID())
 	found2 := f.getFeedByID(f2.ID())

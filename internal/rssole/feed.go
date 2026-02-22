@@ -41,6 +41,10 @@ type feed struct {
 
 	lastSuccess time.Time
 	lastError   time.Time
+
+	// Dependencies injected via StartTickedUpdate
+	readCache ReadCache
+	activity  ActivityTracker
 }
 
 var (
@@ -232,7 +236,7 @@ func (f *feed) Update() error {
 			Feed: f,
 			Item: item,
 		}
-		wItem.IsUnread = readLut.isUnread(wItem.MarkReadID())
+		wItem.IsUnread = f.readCache.IsUnread(wItem.MarkReadID())
 		f.wrappedItems[idx] = wItem
 	}
 
@@ -269,9 +273,9 @@ func (f *feed) Update() error {
 
 	f.freshenUrlsInReadCache()
 
-	readLut.persistReadLut()
+	f.readCache.Persist()
 
-	updateLastmodified()
+	f.activity.UpdateLastModified()
 
 	return nil
 }
@@ -280,14 +284,17 @@ func (f *feed) freshenUrlsInReadCache() {
 	// extend the life of anything valid still in the
 	// read cache.
 	for _, wi := range f.wrappedItems {
-		readLut.extendLifeIfFound(wi.MarkReadID())
+		f.readCache.ExtendLifeIfFound(wi.MarkReadID())
 	}
 }
 
-func (f *feed) StartTickedUpdate(updateTime time.Duration) {
+func (f *feed) StartTickedUpdate(updateTime time.Duration, readCache ReadCache, activity ActivityTracker) {
 	if f.ticker != nil {
 		return // already running
 	}
+
+	f.readCache = readCache
+	f.activity = activity
 
 	f.log.Info("Starting feed update ticker", "duration", updateTime)
 	f.ticker = time.NewTicker(updateTime)
@@ -306,7 +313,7 @@ func (f *feed) StartTickedUpdate(updateTime time.Duration) {
 			case <-stopCh:
 				return
 			case <-ticker.C:
-				if isIdle() {
+				if activity.IsIdle() {
 					f.log.Info("Skipping update, no active clients")
 
 					continue

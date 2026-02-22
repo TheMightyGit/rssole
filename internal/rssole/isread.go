@@ -9,11 +9,15 @@ import (
 	"golang.org/x/exp/slog"
 )
 
+// Ensure unreadLut implements ReadCache.
+var _ ReadCache = (*unreadLut)(nil)
+
 type unreadLut struct {
 	Filename string
 
-	lut map[string]time.Time
-	mu  sync.RWMutex
+	lut      map[string]time.Time
+	mu       sync.RWMutex
+	activity ActivityTracker // for updating last modified on markRead
 }
 
 func (u *unreadLut) loadReadLut() {
@@ -43,8 +47,8 @@ func (u *unreadLut) startCleanupTicker() {
 		ticker := time.NewTicker(updateFrequency)
 		for range ticker.C {
 			before := time.Now().Add(ago)
-			readLut.removeOldEntries(before)
-			readLut.persistReadLut()
+			u.removeOldEntries(before)
+			u.Persist()
 		}
 	}()
 }
@@ -63,16 +67,18 @@ func (u *unreadLut) removeOldEntries(before time.Time) {
 	}
 }
 
-func (u *unreadLut) isUnread(url string) bool {
+// IsUnread returns true if the item has not been marked as read.
+func (u *unreadLut) IsUnread(id string) bool {
 	u.mu.RLock()
 	defer u.mu.RUnlock()
 
-	_, found := u.lut[url]
+	_, found := u.lut[id]
 
 	return !found
 }
 
-func (u *unreadLut) markRead(url string) {
+// MarkRead marks an item as read.
+func (u *unreadLut) MarkRead(id string) {
 	u.mu.Lock()
 	defer u.mu.Unlock()
 
@@ -80,20 +86,24 @@ func (u *unreadLut) markRead(url string) {
 		u.lut = map[string]time.Time{}
 	}
 
-	u.lut[url] = time.Now()
+	u.lut[id] = time.Now()
 
-	updateLastmodified()
+	if u.activity != nil {
+		u.activity.UpdateLastModified()
+	}
 }
 
-func (u *unreadLut) extendLifeIfFound(url string) {
-	if !u.isUnread(url) {
-		u.markRead(url)
+// ExtendLifeIfFound extends the cache lifetime of an item if it exists.
+func (u *unreadLut) ExtendLifeIfFound(id string) {
+	if !u.IsUnread(id) {
+		u.MarkRead(id)
 	}
 }
 
 const lutFilePerms = 0o644
 
-func (u *unreadLut) persistReadLut() {
+// Persist saves the read cache to disk.
+func (u *unreadLut) Persist() {
 	u.mu.Lock()
 	defer u.mu.Unlock()
 
