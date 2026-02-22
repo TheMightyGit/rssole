@@ -55,11 +55,7 @@ func (f *feeds) triggerUpdates() {
 	defer f.mu.RUnlock()
 
 	for _, fd := range f.Feeds {
-		go func(fd *feed) {
-			if err := fd.Update(); err != nil {
-				fd.log.Error("update failed", "error", err)
-			}
-		}(fd)
+		fd.RequestUpdate()
 	}
 }
 

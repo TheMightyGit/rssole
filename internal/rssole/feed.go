@@ -25,10 +25,12 @@ type feed struct {
 	Scrape     *scrape           `json:"scrape,omitempty"`
 	RecentLogs *limitLinesBuffer `json:"-"`
 
-	ticker       *time.Ticker
-	stopCh       chan struct{}
-	feed         *gofeed.Feed
-	mu           sync.RWMutex
+	ticker   *time.Ticker
+	stopCh   chan struct{}
+	updateCh chan struct{}
+	feed     *gofeed.Feed
+	mu       sync.RWMutex
+
 	wrappedItems []*wrappedItem
 	log          *slog.Logger
 
@@ -288,20 +290,14 @@ func (f *feed) StartTickedUpdate(updateTime time.Duration) {
 	f.log.Info("Starting feed update ticker", "duration", updateTime)
 	f.ticker = time.NewTicker(updateTime)
 	f.stopCh = make(chan struct{})
+	f.updateCh = make(chan struct{}, 1)
 
 	stopCh := f.stopCh
 	ticker := f.ticker
+	updateCh := f.updateCh
 
+	// Single goroutine handles all updates for this feed
 	go func() {
-		if err := f.Update(); err != nil {
-			if !errors.Is(err, ErrNotModified) {
-				f.log.Error("update failed", "error", err)
-				f.recordError()
-			}
-		} else {
-			f.recordSuccess()
-		}
-
 		for {
 			select {
 			case <-stopCh:
@@ -313,17 +309,36 @@ func (f *feed) StartTickedUpdate(updateTime time.Duration) {
 					continue
 				}
 
-				if err := f.Update(); err != nil {
-					if !errors.Is(err, ErrNotModified) {
-						f.log.Error("update failed", "error", err)
-						f.recordError()
-					}
-				} else {
-					f.recordSuccess()
-				}
+				f.doUpdate()
+			case <-updateCh:
+				f.doUpdate()
 			}
 		}
 	}()
+
+	// Trigger initial update
+	f.RequestUpdate()
+}
+
+func (f *feed) doUpdate() {
+	if err := f.Update(); err != nil {
+		if !errors.Is(err, ErrNotModified) {
+			f.log.Error("update failed", "error", err)
+			f.recordError()
+		}
+	} else {
+		f.recordSuccess()
+	}
+}
+
+// RequestUpdate signals the feed to update. Non-blocking; if an update
+// is already pending, this is a no-op.
+func (f *feed) RequestUpdate() {
+	select {
+	case f.updateCh <- struct{}{}:
+	default:
+		// update already pending
+	}
 }
 
 func (f *feed) ChangeTickedUpdate(d time.Duration) {
@@ -340,6 +355,7 @@ func (f *feed) StopTickedUpdate() {
 		close(f.stopCh)
 		f.ticker = nil
 		f.stopCh = nil
+		f.updateCh = nil
 	}
 }
 
