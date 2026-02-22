@@ -40,7 +40,6 @@ func TestReadFeedsFile_Success(t *testing.T) {
 	f := feeds{}
 
 	err = f.readFeedsFile(file.Name())
-
 	if err != nil {
 		t.Fatal("unexpected error calling readFeedsFile on good", err)
 	}
@@ -61,7 +60,6 @@ func TestReadFeedsFile_BadJson(t *testing.T) {
 	f := feeds{}
 
 	err = f.readFeedsFile(file.Name())
-
 	if err == nil {
 		t.Fatal("expected error calling readFeedsFile on bad json", err)
 	}
@@ -71,7 +69,6 @@ func TestReadFeedsFile_NoSuchFile(t *testing.T) {
 	f := feeds{}
 
 	err := f.readFeedsFile("file_doesnt_exist.json")
-
 	if err == nil {
 		t.Fatal("expected error calling readFeedsFile on non-existent file", err)
 	}
@@ -184,7 +181,6 @@ func TestSaveFeedsFile_Success(t *testing.T) {
 `
 
 	err = f.saveFeedsFile()
-
 	if err != nil {
 		t.Fatal("unexpected error calling saveFeedsFile", err)
 	}

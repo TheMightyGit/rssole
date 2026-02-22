@@ -171,7 +171,6 @@ func (f *feed) Update() error {
 		req.Header.Set("If-Modified-Since", f.lastModified.In(gmtTimeZoneLocation).Format(time.RFC1123))
 
 		resp, err := httpClient.Do(req)
-
 		if err != nil {
 			return fmt.Errorf("unable to do request: %w", err)
 		}

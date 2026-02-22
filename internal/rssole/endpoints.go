@@ -122,6 +122,7 @@ func items(w http.ResponseWriter, req *http.Request) {
 
 	for _, f := range allFeeds.Feeds {
 		f.mu.RLock()
+
 		if f.URL == feedURL {
 			if err := templates["items.go.html"].Execute(w, f); err != nil {
 				logger.Error("items.go.html", "error", err)
@@ -130,6 +131,7 @@ func items(w http.ResponseWriter, req *http.Request) {
 			// update feed list (oob)
 			feedlistCommon(w, f.Title(), logger)
 		}
+
 		f.mu.RUnlock()
 	}
 }
@@ -139,6 +141,7 @@ func item(w http.ResponseWriter, req *http.Request) {
 	id := req.URL.Query().Get("id")
 
 	allFeeds.mu.RLock()
+
 	for _, f := range allFeeds.Feeds {
 		f.mu.Lock()
 		if f.feed != nil && f.URL == feedURL {
@@ -158,6 +161,7 @@ func item(w http.ResponseWriter, req *http.Request) {
 		}
 		f.mu.Unlock()
 	}
+
 	allFeeds.mu.RUnlock()
 }
 

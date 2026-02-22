@@ -56,7 +56,6 @@ func TestUpdate_InvalidRssFeed(t *testing.T) {
 	feed.Init()
 
 	err := feed.Update()
-
 	if err == nil {
 		t.Fatal("expected an error for an invalid feed")
 	}
@@ -169,7 +168,6 @@ func TestUpdate_InvalidScrape(t *testing.T) {
 	feed.Init()
 
 	err := feed.Update()
-
 	if err == nil {
 		t.Fatal("expected error for an invalid", err)
 	}
