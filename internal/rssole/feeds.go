@@ -21,9 +21,11 @@ var (
 
 func recordActivity() {
 	wasIdle := isIdle()
+
 	lastActivityMu.Lock()
 	lastActivity = time.Now()
 	lastActivityMu.Unlock()
+
 	if wasIdle {
 		slog.Info("Client connected after idle, triggering feed updates")
 		allFeeds.triggerUpdates()
@@ -33,12 +35,14 @@ func recordActivity() {
 func isIdle() bool {
 	lastActivityMu.RLock()
 	defer lastActivityMu.RUnlock()
+
 	return time.Since(lastActivity) > idleTimeout
 }
 
 func (f *feeds) triggerUpdates() {
 	f.mu.RLock()
 	defer f.mu.RUnlock()
+
 	for _, fd := range f.Feeds {
 		go func(fd *feed) {
 			if err := fd.Update(); err != nil {

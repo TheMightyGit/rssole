@@ -68,6 +68,7 @@ func feedsNotModified(req *http.Request) bool {
 
 func feedlist(w http.ResponseWriter, req *http.Request) {
 	recordActivity()
+
 	logger := slog.Default().With("endpoint", req.URL, "method", req.Method)
 
 	// To greatly reduce the bandwidth from polling we use Last-Modified/If-Modified-Since

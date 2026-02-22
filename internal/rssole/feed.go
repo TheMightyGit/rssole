@@ -67,18 +67,22 @@ type limitLinesBuffer struct {
 func (llw *limitLinesBuffer) Write(p []byte) (int, error) {
 	n, err := llw.Buffer.Write(p)
 
-	numLines := strings.Count(llw.Buffer.String(), "\n")
+	numLines := strings.Count(llw.String(), "\n")
 	if numLines > llw.MaxLines {
 		cappedLines := strings.Join(
-			strings.Split(llw.Buffer.String(), "\n")[numLines-maxRecentLogLines:],
+			strings.Split(llw.String(), "\n")[numLines-maxRecentLogLines:],
 			"\n",
 		)
 
-		llw.Buffer.Reset()
-		llw.Buffer.WriteString(cappedLines)
+		llw.Reset()
+		llw.WriteString(cappedLines)
 	}
 
-	return n, err
+	if err != nil {
+		return n, fmt.Errorf("limitLinesBuffer write: %w", err)
+	}
+
+	return n, nil
 }
 
 func (f *feed) Init() {
@@ -298,8 +302,10 @@ func (f *feed) StartTickedUpdate(updateTime time.Duration) {
 			case <-ticker.C:
 				if isIdle() {
 					f.log.Info("Skipping update, no active clients")
+
 					continue
 				}
+
 				if err := f.Update(); err != nil {
 					f.log.Error("update failed", "error", err)
 				}

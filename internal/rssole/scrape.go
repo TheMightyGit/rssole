@@ -92,6 +92,7 @@ func attrOr(n *html.Node, attrName, or string) string {
 	if n == nil {
 		return or
 	}
+
 	for _, a := range n.Attr {
 		if a.Key == attrName {
 			return a.Val
