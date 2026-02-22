@@ -75,7 +75,7 @@ func Start(configFilename, configReadCacheFilename, listenAddress string, update
 	}
 
 	allFeeds.UpdateTime = updateTime
-	allFeeds.BeginFeedUpdates()
+	// Feed updates start on first client connection (see recordActivity)
 
 	http.HandleFunc("GET /{$}", index)
 	http.HandleFunc("GET /feeds", feedlist)

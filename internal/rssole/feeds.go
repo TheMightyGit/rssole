@@ -17,9 +17,15 @@ const idleTimeout = 15 * time.Minute
 var (
 	lastActivity   time.Time
 	lastActivityMu sync.Mutex
+	startOnce      sync.Once
 )
 
 func recordActivity() {
+	startOnce.Do(func() {
+		slog.Info("First client connected, starting feed updates")
+		allFeeds.BeginFeedUpdates()
+	})
+
 	lastActivityMu.Lock()
 	defer lastActivityMu.Unlock()
 
@@ -27,7 +33,7 @@ func recordActivity() {
 	lastActivity = time.Now()
 
 	if wasIdle {
-		slog.Info("Client connected after idle, triggering feed updates")
+		slog.Info("Client reconnected after idle, triggering feed updates")
 		allFeeds.triggerUpdates()
 	}
 }
@@ -36,7 +42,6 @@ func isIdle() bool {
 	lastActivityMu.Lock()
 	defer lastActivityMu.Unlock()
 
-	// If never set (server just started), not considered idle
 	if lastActivity.IsZero() {
 		return false
 	}
