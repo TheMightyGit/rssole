@@ -77,6 +77,7 @@ func TestReadFeedsFile_NoSuchFile(t *testing.T) {
 func TestAddFeed(t *testing.T) {
 	f := feeds{
 		UpdateTime: 1 * time.Second,
+		list:       newFeedList(),
 	}
 
 	f1 := &feed{}
@@ -88,7 +89,7 @@ func TestAddFeed(t *testing.T) {
 	f.addFeed(f1)
 	f.addFeed(f2)
 
-	if len(f.Feeds) != 2 {
+	if len(f.All()) != 2 {
 		t.Fatal("expected 2 feeds to be added")
 	}
 }
@@ -96,6 +97,7 @@ func TestAddFeed(t *testing.T) {
 func TestDelFeed(t *testing.T) {
 	f := feeds{
 		UpdateTime: 1 * time.Second,
+		list:       newFeedList(),
 	}
 
 	fd1 := &feed{URL: "1"}
@@ -113,7 +115,7 @@ func TestDelFeed(t *testing.T) {
 
 	f.delFeed(fd1.ID())
 
-	if len(f.Feeds) != 2 {
+	if len(f.All()) != 2 {
 		t.Fatal("expected 2 feeds to be left")
 	}
 }
@@ -121,6 +123,7 @@ func TestDelFeed(t *testing.T) {
 func TestGetFeedByID(t *testing.T) {
 	f := feeds{
 		UpdateTime: 1 * time.Second,
+		list:       newFeedList(),
 	}
 
 	f1 := &feed{URL: "1"}
@@ -170,13 +173,14 @@ func TestSaveFeedsFile_Success(t *testing.T) {
 
 	f := feeds{
 		filename: file.Name(),
+		list:     newFeedList(),
 	}
 	expectedFileContents := `{
   "config": {
     "listen": "",
     "update_seconds": 0
   },
-  "feeds": null
+  "feeds": []
 }
 `
 

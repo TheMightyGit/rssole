@@ -30,21 +30,24 @@ func init() {
 	testItem1.Feed.Init()
 
 	// Set up some test feeds and items.
-	allFeeds.Feeds = append(allFeeds.Feeds, &feed{
+	feed1 := &feed{
 		URL:  "http://example.com/woo_feed",
 		Name: "Woo Feed!",
-	})
-	allFeeds.Feeds = append(allFeeds.Feeds, &feed{
+	}
+	feed1.Init()
+
+	feed2 := &feed{
 		URL:  "http://example.com/yay_feed",
 		Name: "Yay Feed!",
 		feed: &gofeed.Feed{},
 		wrappedItems: []*wrappedItem{
 			testItem1,
 		},
-	})
+	}
+	feed2.Init()
 
-	allFeeds.Feeds[0].Init()
-	allFeeds.Feeds[1].Init()
+	allFeeds.list.Add(feed1)
+	allFeeds.list.Add(feed2)
 
 	// zero will cause errors if UpdateTime is not set positive
 	allFeeds.UpdateTime = 10
@@ -336,7 +339,7 @@ func TestCrudFeed_Get(t *testing.T) {
 func TestCrudFeed_Post_AddRssFeed(t *testing.T) {
 	defer setUpTearDown(t)(t)
 
-	currentNumFeeds := len(allFeeds.Feeds)
+	currentNumFeeds := len(allFeeds.All())
 
 	data := url.Values{}
 	data.Add("url", "http://example.com/added_feed_url")
@@ -362,11 +365,11 @@ func TestCrudFeed_Post_AddRssFeed(t *testing.T) {
 	}
 
 	// did a feed get added?
-	if len(allFeeds.Feeds) != currentNumFeeds+1 {
-		t.Errorf("expected number of feeds to be higher now, but got: %d", len(allFeeds.Feeds))
+	if len(allFeeds.All()) != currentNumFeeds+1 {
+		t.Errorf("expected number of feeds to be higher now, but got: %d", len(allFeeds.All()))
 	}
 
-	newFeed := allFeeds.Feeds[currentNumFeeds]
+	newFeed := allFeeds.All()[currentNumFeeds]
 	if newFeed.URL != "http://example.com/added_feed_url" {
 		t.Error("expected new feed url to match, got:", newFeed.URL)
 	}
@@ -384,7 +387,7 @@ func TestCrudFeed_Post_AddRssFeed_WithScrape(t *testing.T) {
 	defer setUpTearDown(t)(t)
 
 	// do we start with the expected number of feeds?
-	currentNumFeeds := len(allFeeds.Feeds)
+	currentNumFeeds := len(allFeeds.All())
 
 	data := url.Values{}
 	data.Add("url", "http://example.com/added_feed_url")
@@ -415,11 +418,11 @@ func TestCrudFeed_Post_AddRssFeed_WithScrape(t *testing.T) {
 	}
 
 	// did a feed get added?
-	if len(allFeeds.Feeds) != currentNumFeeds+1 {
-		t.Errorf("expected number of feeds to be higher now, but got: %d", len(allFeeds.Feeds))
+	if len(allFeeds.All()) != currentNumFeeds+1 {
+		t.Errorf("expected number of feeds to be higher now, but got: %d", len(allFeeds.All()))
 	}
 
-	newFeed := allFeeds.Feeds[currentNumFeeds]
+	newFeed := allFeeds.All()[currentNumFeeds]
 	if newFeed.URL != "http://example.com/added_feed_url" {
 		t.Error("expected new feed url to match, got:", newFeed.URL)
 	}
@@ -457,10 +460,10 @@ func TestCrudFeed_Post_AddRssFeed_WithScrape(t *testing.T) {
 func TestCrudFeed_Post_DeleteRssFeed(t *testing.T) {
 	defer setUpTearDown(t)(t)
 
-	currentNumFeeds := len(allFeeds.Feeds)
+	currentNumFeeds := len(allFeeds.All())
 
 	data := url.Values{}
-	data.Add("id", allFeeds.Feeds[0].ID())
+	data.Add("id", allFeeds.All()[0].ID())
 	data.Add("delete", "delete")
 
 	body := strings.NewReader(data.Encode())
@@ -482,8 +485,8 @@ func TestCrudFeed_Post_DeleteRssFeed(t *testing.T) {
 	}
 
 	// did a feed get removed?
-	if len(allFeeds.Feeds) != currentNumFeeds-1 {
-		t.Errorf("expected number of feeds to be lower now, but got: %d", len(allFeeds.Feeds))
+	if len(allFeeds.All()) != currentNumFeeds-1 {
+		t.Errorf("expected number of feeds to be lower now, but got: %d", len(allFeeds.All()))
 	}
 }
 
@@ -491,7 +494,7 @@ func TestCrudFeed_Post_UpdateRssFeed_WithScrape(t *testing.T) {
 	defer setUpTearDown(t)(t)
 
 	data := url.Values{}
-	data.Add("id", allFeeds.Feeds[0].ID()) // replace whatever's there
+	data.Add("id", allFeeds.All()[0].ID()) // replace whatever's there
 	data.Add("url", "http://example.com/added_feed_url")
 	data.Add("name", "Feed Nickname")
 	data.Add("category", "Super Category")
@@ -519,7 +522,7 @@ func TestCrudFeed_Post_UpdateRssFeed_WithScrape(t *testing.T) {
 			status, http.StatusOK)
 	}
 
-	updatedFeed := allFeeds.Feeds[0]
+	updatedFeed := allFeeds.All()[0]
 	if updatedFeed.URL != "http://example.com/added_feed_url" {
 		t.Error("expected new feed url to match, got:", updatedFeed.URL)
 	}

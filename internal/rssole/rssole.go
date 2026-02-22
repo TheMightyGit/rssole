@@ -28,7 +28,7 @@ var (
 )
 
 var (
-	allFeeds = &feeds{}
+	allFeeds = &feeds{list: newFeedList()}
 	readLut  = &unreadLut{}
 )
 

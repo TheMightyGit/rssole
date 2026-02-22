@@ -24,17 +24,15 @@ func index(w http.ResponseWriter, req *http.Request) {
 }
 
 func feedlistCommon(w http.ResponseWriter, selected string, logger *slog.Logger) {
-	allFeeds.mu.RLock()
-	defer allFeeds.mu.RUnlock()
-
 	w.Header().Add("Last-Modified", getLastmodified().Format(http.TimeFormat))
 
-	for _, f := range allFeeds.Feeds {
+	feeds := allFeeds.list.All()
+	for _, f := range feeds {
 		f.mu.RLock()
 	}
 
 	defer func() {
-		for _, f := range allFeeds.Feeds {
+		for _, f := range feeds {
 			f.mu.RUnlock()
 		}
 	}()
@@ -88,9 +86,6 @@ func items(w http.ResponseWriter, req *http.Request) {
 
 	feedURL := req.URL.Query().Get("url")
 
-	allFeeds.mu.RLock()
-	defer allFeeds.mu.RUnlock()
-
 	if req.Method == http.MethodPost {
 		_ = req.ParseForm()
 		markRead := map[string]bool{}
@@ -103,36 +98,30 @@ func items(w http.ResponseWriter, req *http.Request) {
 			}
 		}
 
-		for _, f := range allFeeds.Feeds {
-			if f.feed != nil && f.URL == feedURL {
-				f.mu.Lock()
-				for _, i := range f.Items() {
-					if markRead[i.MarkReadID()] {
-						logger.Info("marking read", "MarkReadID", i.MarkReadID())
-						i.IsUnread = false
-						readLut.markRead(i.MarkReadID())
-					}
+		if f := allFeeds.list.FindByURL(feedURL); f != nil && f.feed != nil {
+			f.mu.Lock()
+			for _, i := range f.Items() {
+				if markRead[i.MarkReadID()] {
+					logger.Info("marking read", "MarkReadID", i.MarkReadID())
+					i.IsUnread = false
+					readLut.markRead(i.MarkReadID())
 				}
-				f.mu.Unlock()
 			}
+			f.mu.Unlock()
 		}
 
 		readLut.persistReadLut()
 	}
 
-	for _, f := range allFeeds.Feeds {
+	if f := allFeeds.list.FindByURL(feedURL); f != nil {
 		f.mu.RLock()
-
-		if f.URL == feedURL {
-			if err := templates["items.go.html"].Execute(w, f); err != nil {
-				logger.Error("items.go.html", "error", err)
-			}
-
-			// update feed list (oob)
-			feedlistCommon(w, f.Title(), logger)
+		if err := templates["items.go.html"].Execute(w, f); err != nil {
+			logger.Error("items.go.html", "error", err)
 		}
-
 		f.mu.RUnlock()
+
+		// update feed list (oob)
+		feedlistCommon(w, f.Title(), logger)
 	}
 }
 
@@ -140,29 +129,27 @@ func item(w http.ResponseWriter, req *http.Request) {
 	feedURL := req.URL.Query().Get("url")
 	id := req.URL.Query().Get("id")
 
-	allFeeds.mu.RLock()
-
-	for _, f := range allFeeds.Feeds {
-		f.mu.Lock()
-		if f.feed != nil && f.URL == feedURL {
-			for _, item := range f.Items() {
-				if item.ID() == id {
-					item.IsUnread = false
-					if err := templates["item.go.html"].Execute(w, item); err != nil {
-						slog.Error("item.go.html", "error", err)
-					}
-
-					readLut.markRead(item.MarkReadID())
-					readLut.persistReadLut()
-
-					break
-				}
-			}
-		}
-		f.mu.Unlock()
+	f := allFeeds.list.FindByURL(feedURL)
+	if f == nil || f.feed == nil {
+		return
 	}
 
-	allFeeds.mu.RUnlock()
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
+	for _, item := range f.Items() {
+		if item.ID() == id {
+			item.IsUnread = false
+			if err := templates["item.go.html"].Execute(w, item); err != nil {
+				slog.Error("item.go.html", "error", err)
+			}
+
+			readLut.markRead(item.MarkReadID())
+			readLut.persistReadLut()
+
+			break
+		}
+	}
 }
 
 func crudfeedGet(w http.ResponseWriter, req *http.Request) {
