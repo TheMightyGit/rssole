@@ -49,9 +49,8 @@ func (conf *scrape) GeneratePseudoRssFeed() (string, error) {
 
 		for _, p := range queryAll(doc, conf.Item) {
 			titleNode := query(p, conf.Title)
-			if titleNode != nil {
-				titleChild := titleNode.FirstChild
-				title := titleChild.Data
+			if titleNode != nil && titleNode.FirstChild != nil {
+				title := titleNode.FirstChild.Data
 				// title := Query(p, f.Scrape.Title).FirstChild.Data
 				link := attrOr(query(p, conf.Link), "href", "(No link available)")
 				itemRss := `  <item>
@@ -90,6 +89,9 @@ func queryAll(n *html.Node, query string) []*html.Node {
 }
 
 func attrOr(n *html.Node, attrName, or string) string {
+	if n == nil {
+		return or
+	}
 	for _, a := range n.Attr {
 		if a.Key == attrName {
 			return a.Val

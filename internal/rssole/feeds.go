@@ -75,11 +75,12 @@ func (f *feeds) delFeed(feedID string) {
 
 	newFeeds := []*feed{}
 
-	for _, f := range f.Feeds {
-		if f.ID() != feedID {
-			newFeeds = append(newFeeds, f)
+	for _, fd := range f.Feeds {
+		if fd.ID() != feedID {
+			newFeeds = append(newFeeds, fd)
 		} else {
-			slog.Info("Removed feed", "url", f.URL)
+			fd.StopTickedUpdate()
+			slog.Info("Removed feed", "url", fd.URL)
 		}
 	}
 

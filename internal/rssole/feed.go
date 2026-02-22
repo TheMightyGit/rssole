@@ -26,6 +26,7 @@ type feed struct {
 	RecentLogs *limitLinesBuffer `json:"-"`
 
 	ticker       *time.Ticker
+	stopCh       chan struct{}
 	feed         *gofeed.Feed
 	mu           sync.RWMutex
 	wrappedItems []*wrappedItem
@@ -77,7 +78,7 @@ func (llw *limitLinesBuffer) Write(p []byte) (int, error) {
 		llw.Buffer.WriteString(cappedLines)
 	}
 
-	return n, fmt.Errorf("limitLinesWriter error - %w", err)
+	return n, err
 }
 
 func (f *feed) Init() {
@@ -280,19 +281,28 @@ func (f *feed) StartTickedUpdate(updateTime time.Duration) {
 
 	f.log.Info("Starting feed update ticker", "duration", updateTime)
 	f.ticker = time.NewTicker(updateTime)
+	f.stopCh = make(chan struct{})
+
+	stopCh := f.stopCh
+	ticker := f.ticker
 
 	go func() {
 		if err := f.Update(); err != nil {
 			f.log.Error("update failed", "error", err)
 		}
 
-		for range f.ticker.C {
-			if isIdle() {
-				f.log.Info("Skipping update, no active clients")
-				continue
-			}
-			if err := f.Update(); err != nil {
-				f.log.Error("update failed", "error", err)
+		for {
+			select {
+			case <-stopCh:
+				return
+			case <-ticker.C:
+				if isIdle() {
+					f.log.Info("Skipping update, no active clients")
+					continue
+				}
+				if err := f.Update(); err != nil {
+					f.log.Error("update failed", "error", err)
+				}
 			}
 		}
 	}()
@@ -309,7 +319,9 @@ func (f *feed) StopTickedUpdate() {
 	if f.ticker != nil {
 		f.log.Info("Stopped update ticker")
 		f.ticker.Stop()
+		close(f.stopCh)
 		f.ticker = nil
+		f.stopCh = nil
 	}
 }
 

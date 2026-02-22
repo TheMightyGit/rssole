@@ -139,7 +139,7 @@ func item(w http.ResponseWriter, req *http.Request) {
 
 	allFeeds.mu.RLock()
 	for _, f := range allFeeds.Feeds {
-		f.mu.RLock()
+		f.mu.Lock()
 		if f.feed != nil && f.URL == feedURL {
 			for _, item := range f.Items() {
 				if item.ID() == id {
@@ -155,7 +155,7 @@ func item(w http.ResponseWriter, req *http.Request) {
 				}
 			}
 		}
-		f.mu.RUnlock()
+		f.mu.Unlock()
 	}
 	allFeeds.mu.RUnlock()
 }
