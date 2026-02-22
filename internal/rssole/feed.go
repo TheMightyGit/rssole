@@ -389,9 +389,7 @@ func (f *feed) recordError() {
 
 // HasRecentError returns true if the last update failed
 // (lastError is more recent than lastSuccess).
+// Caller must hold f.mu.RLock.
 func (f *feed) HasRecentError() bool {
-	f.mu.RLock()
-	defer f.mu.RUnlock()
-
 	return f.lastError.After(f.lastSuccess)
 }
