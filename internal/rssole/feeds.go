@@ -26,11 +26,12 @@ func recordActivity() {
 		allFeeds.BeginFeedUpdates()
 	})
 
-	lastActivityMu.Lock()
-	defer lastActivityMu.Unlock()
+	var wasIdle bool
 
-	wasIdle := !lastActivity.IsZero() && time.Since(lastActivity) > idleTimeout
+	lastActivityMu.Lock()
+	wasIdle = !lastActivity.IsZero() && time.Since(lastActivity) > idleTimeout
 	lastActivity = time.Now()
+	lastActivityMu.Unlock()
 
 	if wasIdle {
 		slog.Info("Client reconnected after idle, triggering feed updates")
