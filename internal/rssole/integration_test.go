@@ -721,3 +721,427 @@ func TestIntegration_MarkAllAsReadThenRefresh(t *testing.T) {
 		}
 	}
 }
+
+func TestIntegration_FeedListCountMatchesItemsCount(t *testing.T) {
+	env := newTestEnv(t)
+	defer env.cleanup()
+
+	// Create a feed with multiple items
+	feedContent := validRSSFeed("Count Test", []string{"Item 1", "Item 2", "Item 3", "Item 4", "Item 5"})
+	feedServer := mockFeedServer(feedContent)
+
+	defer feedServer.Close()
+
+	// Add the feed
+	formData := url.Values{}
+	formData.Set("url", feedServer.URL)
+	formData.Set("name", "Count Test Feed")
+
+	env.request(http.MethodPost, "/crudfeed", formData.Encode())
+
+	// Wait for feed to update
+	time.Sleep(200 * time.Millisecond)
+
+	// Mark some items as read (not all)
+	markReadData := url.Values{}
+	markReadData.Add("read", "http://example.com/item/0")
+	markReadData.Add("read", "http://example.com/item/1")
+
+	env.request(http.MethodPost, "/items?url="+url.QueryEscape(feedServer.URL), markReadData.Encode())
+
+	// Now get the feed list - what count does it show?
+	rrFeeds := env.request(http.MethodGet, "/feeds", "")
+	if rrFeeds.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", rrFeeds.Code)
+	}
+	feedsBody := rrFeeds.Body.String()
+
+	// Get the items page - what count does it show?
+	rrItems := env.request(http.MethodGet, "/items?url="+url.QueryEscape(feedServer.URL), "")
+	if rrItems.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", rrItems.Code)
+	}
+	itemsBody := rrItems.Body.String()
+
+	// Count unread in items response (look for unread indicator in HTML)
+	// The items template should show which items are unread
+	t.Logf("Feeds response:\n%s", feedsBody)
+	t.Logf("Items response:\n%s", itemsBody)
+
+	// After marking 2 of 5 as read, we should have 3 unread
+	// Check feeds list shows 3
+	if !strings.Contains(feedsBody, ">3<") {
+		t.Errorf("BUG: feeds list does not show expected unread count of 3")
+	}
+
+	// The items response also includes an OOB feedlist update - check it matches
+	// Count how many items have "unread" class or indicator in the items response
+	unreadCount := strings.Count(itemsBody, "unread")
+	t.Logf("Found %d occurrences of 'unread' in items response", unreadCount)
+}
+
+// TestIntegration_RefreshVsClickCountMismatch reproduces a bug where:
+// - Refreshing the page shows one set of unread counts
+// - Clicking on any feed shows different (higher) counts
+//
+// The issue is that /feeds uses If-Modified-Since caching, so on refresh the browser
+// may get a 304 and show stale cached HTML. But /items returns fresh HTML with an
+// OOB feedlist update that bypasses the cache.
+func TestIntegration_RefreshVsClickCountMismatch(t *testing.T) {
+	env := newTestEnv(t)
+	defer env.cleanup()
+
+	// Start with 2 items
+	itemCount := 2
+	feedServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		items := make([]string, itemCount)
+		for i := range items {
+			items[i] = fmt.Sprintf("Item %d", i)
+		}
+		fmt.Fprint(w, validRSSFeed("Dynamic Feed", items))
+	}))
+	defer feedServer.Close()
+
+	// Add the feed
+	formData := url.Values{}
+	formData.Set("url", feedServer.URL)
+	formData.Set("name", "Dynamic Feed")
+
+	env.request(http.MethodPost, "/crudfeed", formData.Encode())
+
+	// Wait for initial feed update
+	time.Sleep(200 * time.Millisecond)
+
+	// === SIMULATE: User loads page for the first time ===
+	// Browser requests /feeds (no If-Modified-Since yet)
+	rr1 := env.request(http.MethodGet, "/feeds", "")
+	if rr1.Code != http.StatusOK {
+		t.Fatalf("expected 200 on first request, got %d", rr1.Code)
+	}
+
+	body1 := rr1.Body.String()
+	lastModified1 := rr1.Header().Get("Last-Modified")
+	t.Logf("First /feeds request: status=%d, Last-Modified=%s", rr1.Code, lastModified1)
+	t.Logf("Body shows count: %s", body1)
+
+	// Should show 2 unread items
+	if !strings.Contains(body1, ">2<") {
+		t.Errorf("expected 2 unread items initially, body: %s", body1)
+	}
+
+	// === SIMULATE: Feed gets more items (background update) ===
+	itemCount = 5 // Now 5 items
+
+	// Trigger a feed update
+	feed := env.svc.feeds.All()[0]
+	feed.Update()
+
+	// Wait for update to complete
+	time.Sleep(100 * time.Millisecond)
+
+	// === SIMULATE: User refreshes the page ===
+	// Browser sends If-Modified-Since from cached response
+	req := httptest.NewRequest(http.MethodGet, "/feeds", nil)
+	req.Header.Set("If-Modified-Since", lastModified1)
+
+	rr2 := httptest.NewRecorder()
+	env.mux.ServeHTTP(rr2, req)
+
+	t.Logf("Refresh /feeds request with If-Modified-Since=%s: status=%d", lastModified1, rr2.Code)
+
+	// BUG: If we get 304, the browser shows stale HTML with count=2
+	// but the actual feed now has 5 items
+	if rr2.Code == http.StatusNotModified {
+		t.Logf("BUG REPRODUCED: Server returned 304, browser will show stale count of 2")
+		t.Logf("But actual unread count is: %d", feed.UnreadItemCount())
+
+		// Verify the actual count is different from what browser would show
+		if feed.UnreadItemCount() != 2 {
+			t.Errorf("BUG CONFIRMED: Browser shows cached count=2, but actual count=%d", feed.UnreadItemCount())
+		}
+	}
+
+	// === SIMULATE: User clicks on the feed ===
+	// /items returns fresh HTML with OOB feedlist update
+	rr3 := env.request(http.MethodGet, "/items?url="+url.QueryEscape(feedServer.URL), "")
+	if rr3.Code != http.StatusOK {
+		t.Fatalf("expected 200 for /items, got %d", rr3.Code)
+	}
+
+	body3 := rr3.Body.String()
+	t.Logf("Click /items response shows: %s", body3)
+
+	// This should show the correct count of 5
+	if !strings.Contains(body3, ">5<") {
+		t.Errorf("expected /items OOB update to show 5 unread, body: %s", body3)
+	}
+
+	// === The mismatch ===
+	// If rr2 was 304, browser shows count=2 (from cache)
+	// After clicking, rr3 shows count=5 (fresh)
+	// This is the bug the user is experiencing
+	if rr2.Code == http.StatusNotModified {
+		t.Error("BUG: Refresh returned 304 (stale count=2) but click returned fresh count=5")
+	}
+}
+
+// TestIntegration_RefreshShowsStaleCountsNoFeedUpdates tests a scenario where:
+// - User loads page, sees counts
+// - Time passes but NO feed updates occur (upstream returns 304 not modified)
+// - User refreshes - should still see correct counts, not stale cached HTML
+//
+// This tests whether the If-Modified-Since logic works correctly when feeds
+// haven't changed but the browser has a cached response.
+func TestIntegration_RefreshShowsStaleCountsNoFeedUpdates(t *testing.T) {
+	env := newTestEnv(t)
+	defer env.cleanup()
+
+	// Track if feed server was hit
+	requestCount := 0
+	feedServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requestCount++
+		// Always return the same content
+		fmt.Fprint(w, validRSSFeed("Static Feed", []string{"Item 1", "Item 2", "Item 3"}))
+	}))
+	defer feedServer.Close()
+
+	// Add the feed
+	formData := url.Values{}
+	formData.Set("url", feedServer.URL)
+	formData.Set("name", "Static Feed")
+
+	env.request(http.MethodPost, "/crudfeed", formData.Encode())
+
+	// Wait for initial feed update
+	time.Sleep(200 * time.Millisecond)
+
+	// Stop the ticker to prevent background updates
+	feed := env.svc.feeds.All()[0]
+	feed.StopTickedUpdate()
+
+	t.Logf("Initial request count to feed server: %d", requestCount)
+
+	// === User loads page ===
+	rr1 := env.request(http.MethodGet, "/feeds", "")
+	lastModified1 := rr1.Header().Get("Last-Modified")
+	t.Logf("First /feeds: status=%d, Last-Modified=%s", rr1.Code, lastModified1)
+
+	body1 := rr1.Body.String()
+	if !strings.Contains(body1, ">3<") {
+		t.Fatalf("expected 3 unread items, got: %s", body1)
+	}
+
+	// === User marks one item as read ===
+	markReadData := url.Values{}
+	markReadData.Add("read", "http://example.com/item/0")
+	env.request(http.MethodPost, "/items?url="+url.QueryEscape(feedServer.URL), markReadData.Encode())
+
+	// Now we have 2 unread items
+	t.Logf("After marking read, actual unread count: %d", feed.UnreadItemCount())
+
+	// === User refreshes the page ===
+	// Browser sends If-Modified-Since from first request
+	req := httptest.NewRequest(http.MethodGet, "/feeds", nil)
+	req.Header.Set("If-Modified-Since", lastModified1)
+
+	rr2 := httptest.NewRecorder()
+	env.mux.ServeHTTP(rr2, req)
+
+	t.Logf("Refresh /feeds with If-Modified-Since=%s: status=%d", lastModified1, rr2.Code)
+
+	if rr2.Code == http.StatusNotModified {
+		t.Error("BUG: Got 304 after marking item as read - browser will show stale count of 3 instead of 2")
+	} else if rr2.Code == http.StatusOK {
+		body2 := rr2.Body.String()
+		if strings.Contains(body2, ">3<") {
+			t.Errorf("BUG: Response shows old count of 3, should be 2. Body: %s", body2)
+		}
+		if !strings.Contains(body2, ">2<") {
+			t.Errorf("Expected count of 2, got: %s", body2)
+		}
+	}
+
+	// === User clicks on feed ===
+	rr3 := env.request(http.MethodGet, "/items?url="+url.QueryEscape(feedServer.URL), "")
+	body3 := rr3.Body.String()
+
+	// Should show 2 unread
+	if !strings.Contains(body3, ">2<") {
+		t.Errorf("Expected /items to show 2 unread, got: %s", body3)
+	}
+}
+
+// TestIntegration_BrowserCacheStaleness tests what happens when:
+// 1. Browser caches a /feeds response with Last-Modified header
+// 2. Data changes server-side
+// 3. Browser keeps sending the OLD If-Modified-Since (from step 1) on every request
+//
+// This simulates mobile pull-to-refresh behavior where the browser doesn't
+// update its cached If-Modified-Since value between requests.
+func TestIntegration_BrowserCacheStaleness(t *testing.T) {
+	env := newTestEnv(t)
+	defer env.cleanup()
+
+	feedServer := mockFeedServer(validRSSFeed("Cache Test", []string{"Item 1", "Item 2", "Item 3"}))
+	defer feedServer.Close()
+
+	// Add feed
+	formData := url.Values{}
+	formData.Set("url", feedServer.URL)
+	formData.Set("name", "Cache Test Feed")
+	env.request(http.MethodPost, "/crudfeed", formData.Encode())
+
+	time.Sleep(200 * time.Millisecond)
+
+	// === Browser loads page for first time ===
+	rr1 := env.request(http.MethodGet, "/feeds", "")
+	cachedLastModified := rr1.Header().Get("Last-Modified")
+	t.Logf("Initial request: status=%d, Last-Modified=%s", rr1.Code, cachedLastModified)
+
+	if !strings.Contains(rr1.Body.String(), ">3<") {
+		t.Fatalf("Expected 3 unread initially")
+	}
+
+	// === Time passes, user marks items as read ===
+	markData := url.Values{}
+	markData.Add("read", "http://example.com/item/0")
+	env.request(http.MethodPost, "/items?url="+url.QueryEscape(feedServer.URL), markData.Encode())
+
+	t.Logf("After marking read, server lastModified=%s", env.svc.getLastmodified().Format(http.TimeFormat))
+
+	// === User does pull-to-refresh ===
+	// Browser sends If-Modified-Since from its cache (the OLD value from step 1)
+	req := httptest.NewRequest(http.MethodGet, "/feeds", nil)
+	req.Header.Set("If-Modified-Since", cachedLastModified)
+
+	rr2 := httptest.NewRecorder()
+	env.mux.ServeHTTP(rr2, req)
+
+	t.Logf("Pull-to-refresh with cached If-Modified-Since=%s: status=%d", cachedLastModified, rr2.Code)
+
+	if rr2.Code == http.StatusNotModified {
+		t.Error("BUG: Server returned 304 even though data changed!")
+		t.Logf("Browser will show stale cached HTML with 3 unread instead of 2")
+	}
+
+	// === User clicks on a feed (no caching on /items OOB response) ===
+	rr3 := env.request(http.MethodGet, "/items?url="+url.QueryEscape(feedServer.URL), "")
+	body3 := rr3.Body.String()
+
+	// This shows the OOB feedlist with correct count
+	if strings.Contains(body3, ">3<") && !strings.Contains(body3, ">2<") {
+		t.Logf("OOB response shows stale count too!")
+	}
+	if strings.Contains(body3, ">2<") {
+		t.Logf("OOB response shows correct count of 2")
+	}
+
+	// The bug: if rr2 was 304, browser shows 3, but clicking shows 2
+	if rr2.Code == http.StatusNotModified {
+		t.Error("CONFIRMED: Refresh shows 3 (304 cached), click shows 2 (fresh) - this is the bug!")
+	}
+}
+
+// TestIntegration_IdleTriggersUpdateButReturns304 tests the race condition where:
+// 1. User is idle for 15+ minutes
+// 2. User refreshes - recordActivity() triggers async feed updates
+// 3. feedsNotModified() checks If-Modified-Since BEFORE updates complete
+// 4. Server returns 304, browser shows stale cached HTML
+// 5. Updates complete, lastModified advances (too late!)
+// 6. User clicks feed - gets fresh HTML with correct counts
+//
+// This is the suspected cause of "refresh shows lower counts than clicking".
+func TestIntegration_IdleTriggersUpdateButReturns304(t *testing.T) {
+	env := newTestEnv(t)
+	defer env.cleanup()
+
+	// Create a feed server that tracks requests and can delay responses
+	var requestCount int
+	var mu sync.Mutex
+	updateDelay := 100 * time.Millisecond
+
+	feedServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		mu.Lock()
+		requestCount++
+		count := requestCount
+		mu.Unlock()
+
+		// Simulate slow feed fetch
+		time.Sleep(updateDelay)
+
+		// First request: 2 items. Later: 5 items (simulating new content)
+		var items []string
+		if count <= 2 {
+			items = []string{"Item 1", "Item 2"}
+		} else {
+			items = []string{"Item 1", "Item 2", "Item 3", "Item 4", "Item 5"}
+		}
+		fmt.Fprint(w, validRSSFeed("Idle Test", items))
+	}))
+	defer feedServer.Close()
+
+	// Add feed and wait for initial update
+	formData := url.Values{}
+	formData.Set("url", feedServer.URL)
+	formData.Set("name", "Idle Test Feed")
+	env.request(http.MethodPost, "/crudfeed", formData.Encode())
+
+	time.Sleep(300 * time.Millisecond) // Wait for initial update
+
+	// === User loads page (not idle yet) ===
+	rr1 := env.request(http.MethodGet, "/feeds", "")
+	cachedLastModified := rr1.Header().Get("Last-Modified")
+	t.Logf("Initial load: status=%d, Last-Modified=%s, body has 2 items: %v",
+		rr1.Code, cachedLastModified, strings.Contains(rr1.Body.String(), ">2<"))
+
+	// === Simulate user going idle for 15+ minutes ===
+	env.svc.lastActivityMu.Lock()
+	env.svc.lastActivity = time.Now().Add(-20 * time.Minute)
+	env.svc.lastActivityMu.Unlock()
+
+	t.Logf("Simulated 20 minutes of idle time")
+	t.Logf("Server lastModified before refresh: %s", env.svc.getLastmodified().Format(http.TimeFormat))
+
+	// === User refreshes (pull-to-refresh) ===
+	// This should trigger recordActivity() which triggers async updates
+	// But the If-Modified-Since check happens immediately
+	req := httptest.NewRequest(http.MethodGet, "/feeds", nil)
+	req.Header.Set("If-Modified-Since", cachedLastModified)
+
+	rr2 := httptest.NewRecorder()
+	env.mux.ServeHTTP(rr2, req)
+
+	t.Logf("Refresh after idle: status=%d", rr2.Code)
+	t.Logf("Server lastModified after refresh: %s", env.svc.getLastmodified().Format(http.TimeFormat))
+
+	// Wait for async updates to complete
+	time.Sleep(300 * time.Millisecond)
+
+	t.Logf("Server lastModified after updates complete: %s", env.svc.getLastmodified().Format(http.TimeFormat))
+	t.Logf("Actual unread count: %d", env.svc.feeds.All()[0].UnreadItemCount())
+
+	// === User clicks on feed ===
+	rr3 := env.request(http.MethodGet, "/items?url="+url.QueryEscape(feedServer.URL), "")
+	body3 := rr3.Body.String()
+
+	// Check what counts are shown
+	refreshShows2 := strings.Contains(rr2.Body.String(), ">2<")
+	refreshShows5 := strings.Contains(rr2.Body.String(), ">5<")
+	clickShows2 := strings.Contains(body3, ">2<")
+	clickShows5 := strings.Contains(body3, ">5<")
+
+	t.Logf("Refresh response shows 2: %v, shows 5: %v", refreshShows2, refreshShows5)
+	t.Logf("Click response shows 2: %v, shows 5: %v", clickShows2, clickShows5)
+
+	// THE BUG: If refresh returned 304, browser shows cached "2"
+	// but clicking shows fresh "5"
+	if rr2.Code == http.StatusNotModified {
+		t.Error("BUG REPRODUCED: Server returned 304 on refresh after idle")
+		t.Error("Browser will show stale cached count while click shows fresh count")
+	}
+
+	// Even if we got 200, check if counts differ
+	if rr2.Code == http.StatusOK && refreshShows2 && clickShows5 {
+		t.Error("BUG: Refresh shows 2 but click shows 5 - updates completed between requests")
+	}
+}
