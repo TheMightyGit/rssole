@@ -46,10 +46,11 @@ func init() {
 		URL:  "http://example.com/yay_feed",
 		Name: "Yay Feed!",
 		feed: &gofeed.Feed{},
-		wrappedItems: []*wrappedItem{
-			testItem1,
-		},
 	}
+	feed2Items := []*wrappedItem{
+		testItem1,
+	}
+	feed2.wrappedItems.Store(&feed2Items)
 	feed2.Init()
 
 	testService.feeds.list.Add(feed1)

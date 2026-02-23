@@ -12,6 +12,7 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/mmcdole/gofeed"
@@ -33,7 +34,7 @@ type feed struct {
 	feed         *gofeed.Feed
 	mu           sync.RWMutex
 
-	wrappedItems []*wrappedItem
+	wrappedItems atomic.Pointer[[]*wrappedItem]
 	log          *slog.Logger
 
 	eTag         string
@@ -143,7 +144,12 @@ func (f *feed) UnreadItemCount() int {
 }
 
 func (f *feed) Items() []*wrappedItem {
-	return f.wrappedItems
+	items := f.wrappedItems.Load()
+	if items == nil {
+		return nil
+	}
+
+	return *items
 }
 
 func (f *feed) Update() error {
@@ -227,37 +233,39 @@ func (f *feed) Update() error {
 
 	f.mu.Lock()
 	f.feed = feed
-	f.wrappedItems = make([]*wrappedItem, len(f.feed.Items))
+	f.mu.Unlock()
 
-	f.log.Info("Items in feed", "length", len(f.feed.Items))
+	newItems := make([]*wrappedItem, len(feed.Items))
 
-	for idx, item := range f.feed.Items {
+	f.log.Info("Items in feed", "length", len(feed.Items))
+
+	for idx, item := range feed.Items {
 		wItem := &wrappedItem{
 			Feed: f,
 			Item: item,
 		}
 		wItem.IsUnread = f.readCache.IsUnread(wItem.MarkReadID())
-		f.wrappedItems[idx] = wItem
+		newItems[idx] = wItem
 	}
 
-	sort.Slice(f.wrappedItems, func(i, j int) bool {
+	sort.Slice(newItems, func(i, j int) bool {
 		// unread always higher than read
-		if f.wrappedItems[i].IsUnread && !f.wrappedItems[j].IsUnread {
+		if newItems[i].IsUnread && !newItems[j].IsUnread {
 			return true
 		}
 
-		if !f.wrappedItems[i].IsUnread && f.wrappedItems[j].IsUnread {
+		if !newItems[i].IsUnread && newItems[j].IsUnread {
 			return false
 		}
 
-		iDate := f.wrappedItems[i].UpdatedParsed
+		iDate := newItems[i].UpdatedParsed
 		if iDate == nil {
-			iDate = f.wrappedItems[i].PublishedParsed
+			iDate = newItems[i].PublishedParsed
 		}
 
-		jDate := f.wrappedItems[j].UpdatedParsed
+		jDate := newItems[j].UpdatedParsed
 		if jDate == nil {
-			jDate = f.wrappedItems[j].PublishedParsed
+			jDate = newItems[j].PublishedParsed
 		}
 
 		if iDate != nil && jDate != nil {
@@ -267,7 +275,7 @@ func (f *feed) Update() error {
 		return false // retain current order
 	})
 
-	f.mu.Unlock()
+	f.wrappedItems.Store(&newItems)
 
 	f.log.Info("Finished updating feed")
 
@@ -283,7 +291,7 @@ func (f *feed) Update() error {
 func (f *feed) freshenUrlsInReadCache() {
 	// extend the life of anything valid still in the
 	// read cache.
-	for _, wi := range f.wrappedItems {
+	for _, wi := range f.Items() {
 		f.readCache.ExtendLifeIfFound(wi.MarkReadID())
 	}
 }
