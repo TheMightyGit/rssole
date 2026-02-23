@@ -39,6 +39,7 @@ func newTestEnv(t *testing.T) *testEnv {
 	}
 
 	svc.readLut.Filename = readCacheFile
+	svc.readLut.activity = svc // wire up the activity tracker
 
 	// Set up feeds file
 	feedsFile := filepath.Join(tempDir, "feeds.json")
@@ -642,5 +643,81 @@ func TestIntegration_LastModifiedCaching(t *testing.T) {
 
 	if rr.Code != http.StatusNotModified {
 		t.Errorf("expected 304 Not Modified, got %d", rr.Code)
+	}
+}
+
+func TestIntegration_MarkAllAsReadThenRefresh(t *testing.T) {
+	env := newTestEnv(t)
+	defer env.cleanup()
+
+	// Create a feed with multiple items
+	feedContent := validRSSFeed("Unread Test", []string{"Item 1", "Item 2", "Item 3"})
+	feedServer := mockFeedServer(feedContent)
+
+	defer feedServer.Close()
+
+	// Add the feed
+	formData := url.Values{}
+	formData.Set("url", feedServer.URL)
+	formData.Set("name", "Unread Test Feed")
+
+	env.request(http.MethodPost, "/crudfeed", formData.Encode())
+
+	// Wait for feed to update
+	time.Sleep(200 * time.Millisecond)
+
+	// User loads the feed list page - should see 3 unread
+	rr := env.request(http.MethodGet, "/feeds", "")
+	if rr.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", rr.Code)
+	}
+
+	// Capture Last-Modified header like browser would
+	lastModified := rr.Header().Get("Last-Modified")
+	if lastModified == "" {
+		t.Fatal("expected Last-Modified header")
+	}
+
+	body := rr.Body.String()
+	if !strings.Contains(body, ">3<") {
+		t.Logf("Initial response: %s", body)
+		t.Fatal("expected to see 3 unread items initially")
+	}
+
+	// User clicks on the feed to view items
+	rr = env.request(http.MethodGet, "/items?url="+url.QueryEscape(feedServer.URL), "")
+	if rr.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", rr.Code)
+	}
+
+	// User marks all as read
+	markReadData := url.Values{}
+	markReadData.Add("read", "http://example.com/item/0")
+	markReadData.Add("read", "http://example.com/item/1")
+	markReadData.Add("read", "http://example.com/item/2")
+
+	rr = env.request(http.MethodPost, "/items?url="+url.QueryEscape(feedServer.URL), markReadData.Encode())
+	if rr.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", rr.Code)
+	}
+
+	// User refreshes the page - browser sends If-Modified-Since from previous request
+	req := httptest.NewRequest(http.MethodGet, "/feeds", nil)
+	req.Header.Set("If-Modified-Since", lastModified)
+
+	rr = httptest.NewRecorder()
+	env.mux.ServeHTTP(rr, req)
+
+	// If we get 304, the browser would show cached (old) content - that's the bug
+	if rr.Code == http.StatusNotModified {
+		t.Errorf("BUG: got 304 Not Modified after marking items as read - browser will show stale unread count")
+	}
+
+	// If we get 200, check the body has updated count
+	if rr.Code == http.StatusOK {
+		body = rr.Body.String()
+		if strings.Contains(body, ">3<") {
+			t.Errorf("BUG: response still shows old unread count of 3 after marking all as read\nResponse: %s", body)
+		}
 	}
 }

@@ -53,9 +53,18 @@ func NewService() *Service {
 var _ ActivityTracker = (*Service)(nil)
 
 // UpdateLastModified updates the last modified timestamp.
+// We ensure the new timestamp is at least 1 second ahead of the current value
+// to guarantee it differs when formatted to HTTP time (which has only 1-second precision).
 func (s *Service) UpdateLastModified() {
 	s.muLastmodified.Lock()
-	s.lastmodified = time.Now()
+
+	now := time.Now()
+	if s.lastmodified.IsZero() || now.After(s.lastmodified) {
+		s.lastmodified = now.Add(time.Second)
+	} else {
+		s.lastmodified = s.lastmodified.Add(time.Second)
+	}
+
 	s.muLastmodified.Unlock()
 }
 
