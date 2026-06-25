@@ -71,7 +71,7 @@ func (s *Service) feedlist(w http.ResponseWriter, req *http.Request) {
 
 	// To greatly reduce the bandwidth from polling we use Last-Modified/If-Modified-Since
 	// which is respected by htmx.
-	/* FIXME: for some wacky reason this doesn't actually work - despite what the tests say.
+	/* FIXME this doesn't work in the wild for reasons not identified
 	if s.feedsNotModified(req) {
 		w.WriteHeader(http.StatusNotModified)
 
