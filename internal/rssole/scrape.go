@@ -3,6 +3,7 @@ package rssole
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/andybalholm/cascadia"
 	"golang.org/x/net/html"
@@ -16,13 +17,14 @@ type scrape struct {
 }
 
 func (conf *scrape) GeneratePseudoRssFeed() (string, error) {
-	rss := `<?xml version="1.0" encoding="UTF-8" ?>
+	var rss strings.Builder
+	rss.WriteString(`<?xml version="1.0" encoding="UTF-8" ?>
 <rss version="2.0">
 <channel>
   <title>` + conf.URLs[0] + `</title>
   <link>` + conf.URLs[0] + `</link>
   <description>This RSS was scraped</description>
-`
+`)
 
 	for _, url := range conf.URLs {
 		if url == "" {
@@ -60,15 +62,15 @@ func (conf *scrape) GeneratePseudoRssFeed() (string, error) {
     <description>` + title + `</description>
   </item>
 `
-				rss += itemRss
+				rss.WriteString(itemRss)
 			}
 		}
 	}
 
-	rss += `</channel>
-</rss>`
+	rss.WriteString(`</channel>
+</rss>`)
 
-	return rss, nil
+	return rss.String(), nil
 }
 
 func query(n *html.Node, query string) *html.Node {
