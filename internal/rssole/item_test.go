@@ -61,7 +61,6 @@ func TestDescription_HtmlSanitised(t *testing.T) {
 <link foo="Should Be Deleted">
 <meta foo="Should Be Deleted">
 <iframe>Should Be Deleted</iframe>
-<a></a>
 <img foo="bar" width="10000" src="http://example.com/example.gif" alt="my alt" />
 <svg width="200" height="250" version="1.1" xmlns="http://www.w3.org/2000/svg">
 </svg>

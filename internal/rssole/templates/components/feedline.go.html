@@ -3,6 +3,7 @@
     <span class="badge {{if gt .UnreadItemCount 0}}bg-danger{{else}}bg-secondary{{end}}">{{.UnreadItemCount}}</span>
   </span>
   &nbsp;
+  {{if .HasRecentError}}<i class="bi-exclamation-triangle-fill text-warning" title="Last update failed"></i>&nbsp;{{end}}
   <span class="text-truncate flex-fill">
     {{.Title}}
   </span>

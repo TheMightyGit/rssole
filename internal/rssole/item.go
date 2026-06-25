@@ -49,12 +49,12 @@ func (w *wrappedItem) Images() []string {
 	images := []string{}
 
 	// standard supplied image
-	if w.Item.Image != nil {
-		images = append(images, w.Item.Image.URL)
+	if w.Image != nil {
+		images = append(images, w.Image.URL)
 	}
 
 	// mastodon/gibiz images
-	if media, found := w.Item.Extensions["media"]; found {
+	if media, found := w.Extensions["media"]; found {
 		if content, found := media["content"]; found {
 			for _, v := range content {
 				if v.Attrs["medium"] == "image" {
@@ -66,7 +66,7 @@ func (w *wrappedItem) Images() []string {
 	}
 
 	// youtube style media:group
-	group := w.Item.Extensions["media"]["group"]
+	group := w.Extensions["media"]["group"]
 	if len(group) > 0 {
 		thumbnail := group[0].Children["thumbnail"]
 		if len(thumbnail) > 0 {
@@ -112,12 +112,12 @@ func (w *wrappedItem) Description() string {
 		// create a list of descriptions from various sources,
 		// we'll pick the longest later on.
 		descSources := []*string{
-			&w.Item.Description,
-			&w.Item.Content,
+			&w.Item.Description, //nolint:staticcheck // Method shadows embedded field, explicit access required
+			&w.Content,
 		}
 
 		// youtube style media:group ?
-		group := w.Item.Extensions["media"]["group"]
+		group := w.Extensions["media"]["group"]
 		if len(group) > 0 {
 			description := group[0].Children["description"]
 			if len(description) > 0 {
@@ -126,7 +126,7 @@ func (w *wrappedItem) Description() string {
 		}
 
 		// IFLS a10 ?
-		a10content := w.Item.Extensions["a10"]["content"]
+		a10content := w.Extensions["a10"]["content"]
 		if len(a10content) > 0 {
 			description := a10content[0].Value
 			if len(description) > 0 {

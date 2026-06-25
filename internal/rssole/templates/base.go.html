@@ -34,7 +34,7 @@
           <button
             hx-get="/settings"
             hx-target="#items"
-            hx-swap="innerHTML"
+            hx-swap="innerHTML show:#items:top"
             class="btn btn-light p-1 text-nowrap">
             <i class="bi-gear-fill"></i>
           </button>
@@ -43,7 +43,7 @@
           <button
             hx-get="/crudfeed"
             hx-target="#items"
-            hx-swap="innerHTML"
+            hx-swap="innerHTML show:#items:top"
             class="btn btn-light p-1 text-nowrap">
             <i class="bi-plus-circle"></i>
           </button>

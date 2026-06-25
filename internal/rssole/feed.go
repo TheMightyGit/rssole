@@ -12,6 +12,7 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/mmcdole/gofeed"
@@ -26,13 +27,25 @@ type feed struct {
 	RecentLogs *limitLinesBuffer `json:"-"`
 
 	ticker       *time.Ticker
+	stopCh       chan struct{}
+	updateCh     chan struct{}
+	updatePeriod time.Duration
+	lastPolled   time.Time
 	feed         *gofeed.Feed
 	mu           sync.RWMutex
-	wrappedItems []*wrappedItem
+
+	wrappedItems atomic.Pointer[[]*wrappedItem]
 	log          *slog.Logger
 
 	eTag         string
 	lastModified time.Time
+
+	lastSuccess time.Time
+	lastError   time.Time
+
+	// Dependencies injected via StartTickedUpdate
+	readCache ReadCache
+	activity  ActivityTracker
 }
 
 var (
@@ -66,18 +79,22 @@ type limitLinesBuffer struct {
 func (llw *limitLinesBuffer) Write(p []byte) (int, error) {
 	n, err := llw.Buffer.Write(p)
 
-	numLines := strings.Count(llw.Buffer.String(), "\n")
+	numLines := strings.Count(llw.String(), "\n")
 	if numLines > llw.MaxLines {
 		cappedLines := strings.Join(
-			strings.Split(llw.Buffer.String(), "\n")[numLines-maxRecentLogLines:],
+			strings.Split(llw.String(), "\n")[numLines-maxRecentLogLines:],
 			"\n",
 		)
 
-		llw.Buffer.Reset()
-		llw.Buffer.WriteString(cappedLines)
+		llw.Reset()
+		llw.WriteString(cappedLines)
 	}
 
-	return n, fmt.Errorf("limitLinesWriter error - %w", err)
+	if err != nil {
+		return n, fmt.Errorf("limitLinesBuffer write: %w", err)
+	}
+
+	return n, nil
 }
 
 func (f *feed) Init() {
@@ -127,7 +144,12 @@ func (f *feed) UnreadItemCount() int {
 }
 
 func (f *feed) Items() []*wrappedItem {
-	return f.wrappedItems
+	items := f.wrappedItems.Load()
+	if items == nil {
+		return nil
+	}
+
+	return *items
 }
 
 func (f *feed) Update() error {
@@ -166,7 +188,6 @@ func (f *feed) Update() error {
 		req.Header.Set("If-Modified-Since", f.lastModified.In(gmtTimeZoneLocation).Format(time.RFC1123))
 
 		resp, err := httpClient.Do(req)
-
 		if err != nil {
 			return fmt.Errorf("unable to do request: %w", err)
 		}
@@ -212,37 +233,39 @@ func (f *feed) Update() error {
 
 	f.mu.Lock()
 	f.feed = feed
-	f.wrappedItems = make([]*wrappedItem, len(f.feed.Items))
+	f.mu.Unlock()
 
-	f.log.Info("Items in feed", "length", len(f.feed.Items))
+	newItems := make([]*wrappedItem, len(feed.Items))
 
-	for idx, item := range f.feed.Items {
+	f.log.Info("Items in feed", "length", len(feed.Items))
+
+	for idx, item := range feed.Items {
 		wItem := &wrappedItem{
 			Feed: f,
 			Item: item,
 		}
-		wItem.IsUnread = readLut.isUnread(wItem.MarkReadID())
-		f.wrappedItems[idx] = wItem
+		wItem.IsUnread = f.readCache.IsUnread(wItem.MarkReadID())
+		newItems[idx] = wItem
 	}
 
-	sort.Slice(f.wrappedItems, func(i, j int) bool {
+	sort.Slice(newItems, func(i, j int) bool {
 		// unread always higher than read
-		if f.wrappedItems[i].IsUnread && !f.wrappedItems[j].IsUnread {
+		if newItems[i].IsUnread && !newItems[j].IsUnread {
 			return true
 		}
 
-		if !f.wrappedItems[i].IsUnread && f.wrappedItems[j].IsUnread {
+		if !newItems[i].IsUnread && newItems[j].IsUnread {
 			return false
 		}
 
-		iDate := f.wrappedItems[i].UpdatedParsed
+		iDate := newItems[i].UpdatedParsed
 		if iDate == nil {
-			iDate = f.wrappedItems[i].PublishedParsed
+			iDate = newItems[i].PublishedParsed
 		}
 
-		jDate := f.wrappedItems[j].UpdatedParsed
+		jDate := newItems[j].UpdatedParsed
 		if jDate == nil {
-			jDate = f.wrappedItems[j].PublishedParsed
+			jDate = newItems[j].PublishedParsed
 		}
 
 		if iDate != nil && jDate != nil {
@@ -252,15 +275,15 @@ func (f *feed) Update() error {
 		return false // retain current order
 	})
 
-	f.mu.Unlock()
+	f.wrappedItems.Store(&newItems)
 
 	f.log.Info("Finished updating feed")
 
 	f.freshenUrlsInReadCache()
 
-	readLut.persistReadLut()
+	f.readCache.Persist()
 
-	updateLastmodified()
+	f.activity.UpdateLastModified()
 
 	return nil
 }
@@ -268,36 +291,85 @@ func (f *feed) Update() error {
 func (f *feed) freshenUrlsInReadCache() {
 	// extend the life of anything valid still in the
 	// read cache.
-	for _, wi := range f.wrappedItems {
-		readLut.extendLifeIfFound(wi.MarkReadID())
+	for _, wi := range f.Items() {
+		f.readCache.ExtendLifeIfFound(wi.MarkReadID())
 	}
 }
 
-func (f *feed) StartTickedUpdate(updateTime time.Duration) {
+func (f *feed) StartTickedUpdate(updateTime time.Duration, readCache ReadCache, activity ActivityTracker) {
 	if f.ticker != nil {
 		return // already running
 	}
 
+	f.readCache = readCache
+	f.activity = activity
+
 	f.log.Info("Starting feed update ticker", "duration", updateTime)
 	f.ticker = time.NewTicker(updateTime)
+	f.stopCh = make(chan struct{})
+	f.updateCh = make(chan struct{}, 1)
+	f.updatePeriod = updateTime
 
+	stopCh := f.stopCh
+	ticker := f.ticker
+	updateCh := f.updateCh
+
+	// Single goroutine handles all updates for this feed
 	go func() {
-		if err := f.Update(); err != nil {
-			f.log.Error("update failed", "error", err)
-		}
+		for {
+			select {
+			case <-stopCh:
+				return
+			case <-ticker.C:
+				if activity.IsIdle() {
+					f.log.Info("Skipping update, no active clients")
 
-		for range f.ticker.C {
-			if err := f.Update(); err != nil {
-				f.log.Error("update failed", "error", err)
+					continue
+				}
+
+				f.doUpdate()
+			case <-updateCh:
+				f.doUpdate()
 			}
 		}
 	}()
+
+	// Trigger initial update
+	f.RequestUpdate()
+}
+
+func (f *feed) doUpdate() {
+	if time.Since(f.lastPolled) < f.updatePeriod-time.Second {
+		return // too soon
+	}
+
+	f.lastPolled = time.Now()
+
+	if err := f.Update(); err != nil {
+		if !errors.Is(err, ErrNotModified) {
+			f.log.Error("update failed", "error", err)
+			f.recordError()
+		}
+	} else {
+		f.recordSuccess()
+	}
+}
+
+// RequestUpdate signals the feed to update. Non-blocking; if an update
+// is already pending, this is a no-op.
+func (f *feed) RequestUpdate() {
+	select {
+	case f.updateCh <- struct{}{}:
+	default:
+		// update already pending
+	}
 }
 
 func (f *feed) ChangeTickedUpdate(d time.Duration) {
 	if f.ticker != nil {
 		f.log.Info("Update ticker", "update", d)
 		f.ticker.Reset(d)
+		f.updatePeriod = d
 	}
 }
 
@@ -305,7 +377,10 @@ func (f *feed) StopTickedUpdate() {
 	if f.ticker != nil {
 		f.log.Info("Stopped update ticker")
 		f.ticker.Stop()
+		close(f.stopCh)
 		f.ticker = nil
+		f.stopCh = nil
+		f.updateCh = nil
 	}
 }
 
@@ -313,4 +388,23 @@ func (f *feed) ID() string {
 	hash := md5.Sum([]byte(f.URL))
 
 	return hex.EncodeToString(hash[:])
+}
+
+func (f *feed) recordSuccess() {
+	f.mu.Lock()
+	f.lastSuccess = time.Now()
+	f.mu.Unlock()
+}
+
+func (f *feed) recordError() {
+	f.mu.Lock()
+	f.lastError = time.Now()
+	f.mu.Unlock()
+}
+
+// HasRecentError returns true if the last update failed
+// (lastError is more recent than lastSuccess).
+// Caller must hold f.mu.RLock.
+func (f *feed) HasRecentError() bool {
+	return f.lastError.After(f.lastSuccess)
 }
