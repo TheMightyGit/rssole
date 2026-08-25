@@ -310,17 +310,13 @@ func (f *feed) StartTickedUpdate(updateTime time.Duration, readCache ReadCache, 
 	f.updateCh = make(chan struct{}, 1)
 	f.updatePeriod = updateTime
 
-	stopCh := f.stopCh
-	ticker := f.ticker
-	updateCh := f.updateCh
-
 	// Single goroutine handles all updates for this feed
 	go func() {
 		for {
 			select {
-			case <-stopCh:
+			case <-f.stopCh:
 				return
-			case <-ticker.C:
+			case <-f.ticker.C:
 				if activity.IsIdle() {
 					f.log.Info("Skipping update, no active clients")
 
@@ -328,7 +324,7 @@ func (f *feed) StartTickedUpdate(updateTime time.Duration, readCache ReadCache, 
 				}
 
 				f.doUpdate()
-			case <-updateCh:
+			case <-f.updateCh:
 				f.doUpdate()
 			}
 		}
